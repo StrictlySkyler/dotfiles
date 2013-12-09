@@ -1,0 +1,40 @@
+#Navigation
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias .....='cd ../../../..'
+
+#Applications
+alias sub='open -a "Sublime Text 2"'
+
+#Managing ls
+if ls --color > /dev/null 2>&1; then # GNU `ls`
+  colorflag='--color'
+else # OS X `ls`
+  colorflag='-G'
+fi
+
+alias l='ls -l ${colorflag}'
+alias ll='ls -lahFT ${colorflag}'
+#Always use color flag
+alias ls='command ls ${colorflag}'
+
+#Clear the terminal
+alias cl='clear'
+
+#Get OSX Software Updates, along with Ruby gems, Homebrew, npm, and packages installed by them
+alias update='sudo softwareupdate -i -a; brew update; brew upgrade; brew cleanup; npm update npm -g; npm update -g; sudo gem update'
+
+# Clean up LaunchServices to remove duplicates in the “Open With” menu
+alias lscleanup="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -kill -r -domain local -domain system -domain user && killall Finder"
+
+#Git Commands
+alias status='git status'
+alias checkout='git checkout'
+alias commit='git commit -a'
+alias pull='git pull'
+alias push='git push'
+alias merge='git merge'
+alias add='git add -A'
+alias pull-request='git pull-request'
+alias git=hub

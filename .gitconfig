@@ -1,0 +1,30 @@
+[user]
+	name = Skyler Brungardt
+	email = skyler.brungardt@gmail.com
+[github]
+	user = StrictlySkyler
+	token = bb3e8e39b18990d372ab7487ea978cb2
+[core]
+	excludesfile = /Users/skyler/.gitignore_global
+[difftool "sourcetree"]
+	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
+	path = 
+[mergetool "sourcetree"]
+	cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
+	trustExitCode = true
+[color]
+	ui = true
+[merge]
+	conflictstyle = diff3
+	tool = kdiff3
+[push]
+	default = upstream
+[diff]
+	tool = kdiff3
+	renameLimit = 50000
+[credential]
+	helper = osxkeychain
+[help]
+	autocorrect = 1
+[hub]
+	host = git.autodesk.com

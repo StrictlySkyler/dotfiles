@@ -17,12 +17,12 @@
 $\/www\/cb\.org\/pacollegeplan
 
 # Command Line History (newest to oldest):
-:q
 :x
+:q!
+:q
 :w
 :gc
 :542
-:q!
 :573
 :Q
 :493
@@ -94,98 +94,56 @@ $\/www\/cb\.org\/pacollegeplan
 	  SSLCertificateKeyFile "/Users/skyler/autodesk/brungas.cyborg/deploy/server.key"
 	
 "1	LINE	0
-	  SSLEngine on
-	  SSLCertificateFile "/Users/skyler/autodesk/brungas.cyborg/deploy/server.crt"
-	  SSLCertificateKeyFile "/Users/skyler/autodesk/brungas.cyborg/deploy/server.key"
+	nameserver 208.201.224.33
 "2	LINE	0
-	SSLCertificateFile "/Users/skyler/autodesk/brungas.cyborg/deploy/server.crt"
-	SSLCertificateKeyFile "/Users/skyler/autodesk/brungas.cyborg/deploy/server.key"
+	127.0.0.1 brungas.cyborg.autodesk.com
 "3	LINE	0
-	SSLCertificateFile "/Users/skyler/autodesk/brungas.cyborg/deploy/server.crt"
-	SSLCertificateKeyFile "/Users/skyler/autodesk/brungas.cyborg/deploy/server.key"
+	#54.215.86.12 bionano.ads.autodesk.com
 "4	LINE	0
-	SSLCertificateFile "/Users/skyler/autodesk/brungas.cyborg/deploy/server.crt"
-	SSLCertificateKeyFile "/Users/skyler/autodesk/brungas.cyborg/deploy/server.key"
+	#127.0.0.1 cyborg.autodesk.com
 "5	LINE	0
-	  SSLEngine on
+	33.33.33.10 vagrant.cyborg.autodesk.com
 "6	LINE	0
 	  SSLEngine on
 	  SSLCertificateFile "/Users/skyler/autodesk/brungas.cyborg/deploy/server.crt"
 	  SSLCertificateKeyFile "/Users/skyler/autodesk/brungas.cyborg/deploy/server.key"
 "7	LINE	0
-	
+	SSLCertificateFile "/Users/skyler/autodesk/brungas.cyborg/deploy/server.crt"
+	SSLCertificateKeyFile "/Users/skyler/autodesk/brungas.cyborg/deploy/server.key"
 "8	LINE	0
-	  ServerName chandrd.localhost
-	  DocumentRoot /Users/skyler/autodesk/t-kimoa.cyborg/app/
-	  Header Set Cache-Control "max-age=0, no-store"
-	  CacheDisable http://localhost
-	  <Directory "/Users/skyler/autodesk/t-kimoa.cyborg/app/">
-	    Options +FollowSymlinks
-	    AllowOverride All
-	    Order allow,deny
-	    Allow from all
-	  </Directory>
-	
-	  <IfModule mod_rewrite.c>
-	    RewriteEngine on
-	    RewriteRule ^/proxies/s3/(.*)$ http://s3.amazonaws.com:80/$1 [P]
-	    RewriteRule ^/make/services/slicing/(.*)$ http://SLICING-ALPHA-123DAPP-1077555264.us-east-1.elb.amazonaws.com:80/$1 [R]
-	    RewriteRule ^/(.*)/core/services/content/([0-9]+)_([0-9]+).js$ /$1/core/services/content/getcontent.php?contentid=$2_$3 [P]
-	    
-	    # For computing nodes, from .htaccess
-	    RewriteRule /siteversion/cyborg/api/v1/core/[\d|\w/]+ /siteversion/cyborg/api/v1/dispatcher.php [L,QSA]
-	  </IfModule>
-	
-	</VirtualHost>
+	SSLCertificateFile "/Users/skyler/autodesk/brungas.cyborg/deploy/server.crt"
+	SSLCertificateKeyFile "/Users/skyler/autodesk/brungas.cyborg/deploy/server.key"
 "9	LINE	0
-	<VirtualHost *:80>
-	  ServerName t-kimoa.localhost
-	  DocumentRoot /Users/skyler/autodesk/t-kimoa.cyborg/app/
-	  Header Set Cache-Control "max-age=0, no-store"
-	  CacheDisable http://localhost
-	  <Directory "/Users/skyler/autodesk/t-kimoa.cyborg/app/">
-	    Options +FollowSymlinks
-	    AllowOverride All
-	    Order allow,deny
-	    Allow from all
-	  </Directory>
-	
-	  <IfModule mod_rewrite.c>
-	    RewriteEngine on
-	    RewriteRule ^/proxies/s3/(.*)$ http://s3.amazonaws.com:80/$1 [P]
-	    RewriteRule ^/make/services/slicing/(.*)$ http://SLICING-ALPHA-123DAPP-1077555264.us-east-1.elb.amazonaws.com:80/$1 [R]
-	    RewriteRule ^/(.*)/core/services/content/([0-9]+)_([0-9]+).js$ /$1/core/services/content/getcontent.php?contentid=$2_$3 [P]
-	    
-	    # For computing nodes, from .htaccess
-	    RewriteRule /siteversion/cyborg/api/v1/core/[\d|\w/]+ /siteversion/cyborg/api/v1/dispatcher.php [L,QSA]
-	  </IfModule>
-	
-	</VirtualHost>
-	
-	<VirtualHost *:80>
+	SSLCertificateFile "/Users/skyler/autodesk/brungas.cyborg/deploy/server.crt"
+	SSLCertificateKeyFile "/Users/skyler/autodesk/brungas.cyborg/deploy/server.key"
 ""-	CHAR	0
-	#
+	208.201.224.11
 
 # File marks:
-'0  1  0  /private/etc/apache2/extra/httpd-vhosts.conf
-'1  501  0  /private/etc/apache2/httpd.conf
-'2  12  0  /private/etc/hosts
-'3  1  22  ~/scripts/nodeserver.sh
-'4  577  13  /private/etc/apache2/httpd.conf
-'5  574  0  /private/etc/apache2/httpd.conf
-'6  574  13  /private/etc/apache2/httpd.conf
-'7  495  2  /private/etc/apache2/httpd.conf
-'8  574  81  /private/etc/apache2/httpd.conf
-'9  574  78  /private/etc/apache2/httpd.conf
+'0  10  17  /private/etc/resolv.conf
+'1  20  9  /private/etc/hosts
+'2  14  11  /private/etc/hosts
+'3  12  1  /private/etc/hosts
+'4  1  0  /private/etc/apache2/extra/httpd-vhosts.conf
+'5  501  0  /private/etc/apache2/httpd.conf
+'6  1  22  ~/scripts/nodeserver.sh
+'7  577  13  /private/etc/apache2/httpd.conf
+'8  574  0  /private/etc/apache2/httpd.conf
+'9  574  13  /private/etc/apache2/httpd.conf
 
 # Jumplist (newest first):
+-'  10  17  /private/etc/resolv.conf
+-'  1  0  /private/etc/resolv.conf
+-'  20  9  /private/etc/hosts
+-'  18  0  /private/etc/hosts
+-'  14  0  /private/etc/hosts
+-'  12  0  /private/etc/hosts
 -'  1  0  /private/etc/apache2/extra/httpd-vhosts.conf
 -'  501  0  /private/etc/apache2/httpd.conf
 -'  1  0  /private/etc/apache2/httpd.conf
--'  12  0  /private/etc/hosts
 -'  1  22  ~/scripts/nodeserver.sh
 -'  2  0  ~/scripts/nodeserver.sh
--'  17  0  /private/etc/hosts
+-'  21  0  /private/etc/hosts
 -'  577  13  /private/etc/apache2/httpd.conf
 -'  549  13  /private/etc/apache2/httpd.conf
 -'  511  43  /private/etc/apache2/httpd.conf
@@ -217,20 +175,16 @@ $\/www\/cb\.org\/pacollegeplan
 -'  490  10  /private/etc/apache2/httpd.conf
 -'  488  41  /private/etc/apache2/httpd.conf
 -'  565  4  /private/etc/apache2/httpd.conf
--'  14  0  /private/etc/hosts
--'  16  0  /private/etc/hosts
 -'  605  0  /private/etc/apache2/httpd.conf
 -'  528  2  /private/etc/apache2/httpd.conf
 -'  1  0  /private/etc/hosts.equiv
 -'  1  0  /private/etc/hostconfig
 -'  1  0  /private/etc/host
--'  15  0  /private/etc/hosts
 -'  9  0  /private/etc/hosts
 -'  8  0  /private/etc/hosts
 -'  538  18  /private/etc/php.ini
 -'  307  0  /private/etc/php.ini
 -'  548  2  /private/etc/apache2/httpd.conf
--'  18  0  /private/etc/hosts
 -'  7  0  /private/etc/hosts
 -'  12  0  /private/etc/shells
 -'  1  0  /private/etc/shells
@@ -248,10 +202,8 @@ $\/www\/cb\.org\/pacollegeplan
 -'  55  52  /private/etc/php.ini
 -'  501  0  /private/etc/apache2/httpd.conf
 -'  1  0  /private/etc/apache2/httpd.conf
--'  12  0  /private/etc/hosts
 -'  1  22  ~/scripts/nodeserver.sh
 -'  2  0  ~/scripts/nodeserver.sh
--'  17  0  /private/etc/hosts
 -'  577  13  /private/etc/apache2/httpd.conf
 -'  549  13  /private/etc/apache2/httpd.conf
 -'  511  43  /private/etc/apache2/httpd.conf
@@ -276,9 +228,122 @@ $\/www\/cb\.org\/pacollegeplan
 -'  574  0  /private/etc/apache2/httpd.conf
 -'  557  4  /private/etc/apache2/httpd.conf
 -'  495  0  /private/etc/apache2/httpd.conf
--'  492  0  /private/etc/apache2/httpd.conf
+-'  1  0  /private/etc/apache2/extra/httpd-vhosts.conf
+-'  501  0  /private/etc/apache2/httpd.conf
 
 # History of marks within files (newest to oldest):
+
+> /private/etc/resolv.conf
+	"	10	17
+	^	10	18
+	.	10	17
+	+	11	0
+	+	10	17
+
+> /private/etc/hosts
+	"	20	9
+	^	20	10
+	.	20	9
+	+	25	24
+	+	30	0
+	+	22	0
+	+	30	0
+	+	34	0
+	+	25	0
+	+	23	0
+	+	34	0
+	+	23	0
+	+	30	0
+	+	25	0
+	+	30	32
+	+	23	0
+	+	25	0
+	+	30	0
+	+	30	0
+	+	30	0
+	+	25	0
+	+	23	0
+	+	28	23
+	+	29	10
+	+	23	0
+	+	25	0
+	+	26	0
+	+	27	0
+	+	28	0
+	+	29	1
+	+	23	0
+	+	25	0
+	+	26	0
+	+	23	0
+	+	25	0
+	+	26	0
+	+	30	0
+	+	22	16
+	+	23	0
+	+	30	0
+	+	23	0
+	+	22	0
+	+	30	0
+	+	34	21
+	+	34	0
+	+	34	0
+	+	34	0
+	+	34	0
+	+	34	0
+	+	21	22
+	+	34	0
+	+	24	0
+	+	30	0
+	+	24	0
+	+	23	0
+	+	34	0
+	+	23	0
+	+	24	0
+	+	23	0
+	+	24	0
+	+	34	0
+	+	34	0
+	+	34	0
+	+	32	15
+	+	33	19
+	+	32	36
+	+	21	0
+	+	7	39
+	+	21	0
+	+	13	9
+	+	21	26
+	+	21	24
+	+	13	26
+	+	21	78
+	+	21	0
+	+	21	61
+	+	21	0
+	+	8	0
+	+	8	0
+	+	9	0
+	+	8	0
+	+	21	0
+	+	8	0
+	+	12	20
+	+	21	0
+	+	21	0
+	+	21	28
+	+	21	96
+	+	21	34
+	+	21	0
+	+	21	38
+	+	21	36
+	+	21	90
+	+	12	2
+	+	21	0
+	+	14	11
+	+	20	22
+	+	16	9
+	+	18	0
+	+	17	9
+	+	18	9
+	+	19	9
+	+	20	9
 
 > /private/etc/apache2/extra/httpd-vhosts.conf
 	"	1	0
@@ -443,111 +508,6 @@ $\/www\/cb\.org\/pacollegeplan
 	+	523	13
 	+	549	13
 	+	577	13
-
-> /private/etc/hosts
-	"	12	0
-	^	12	1
-	.	12	0
-	+	20	0
-	+	27	0
-	+	20	0
-	+	27	0
-	+	20	0
-	+	31	32
-	+	20	0
-	+	31	10
-	+	20	0
-	+	22	24
-	+	27	0
-	+	19	0
-	+	27	0
-	+	31	0
-	+	22	0
-	+	20	0
-	+	31	0
-	+	20	0
-	+	27	0
-	+	22	0
-	+	27	32
-	+	20	0
-	+	22	0
-	+	27	0
-	+	27	0
-	+	27	0
-	+	22	0
-	+	20	0
-	+	25	23
-	+	26	10
-	+	20	0
-	+	22	0
-	+	23	0
-	+	24	0
-	+	25	0
-	+	26	1
-	+	20	0
-	+	22	0
-	+	23	0
-	+	20	0
-	+	22	0
-	+	23	0
-	+	27	0
-	+	19	16
-	+	20	0
-	+	27	0
-	+	20	0
-	+	19	0
-	+	27	0
-	+	31	21
-	+	31	0
-	+	31	0
-	+	31	0
-	+	31	0
-	+	31	0
-	+	18	22
-	+	31	0
-	+	21	0
-	+	27	0
-	+	21	0
-	+	20	0
-	+	31	0
-	+	20	0
-	+	21	0
-	+	20	0
-	+	21	0
-	+	31	0
-	+	31	0
-	+	31	0
-	+	29	15
-	+	30	19
-	+	29	36
-	+	18	0
-	+	7	39
-	+	18	0
-	+	13	9
-	+	18	26
-	+	18	24
-	+	13	26
-	+	14	78
-	+	18	0
-	+	14	61
-	+	18	0
-	+	8	0
-	+	8	0
-	+	9	0
-	+	8	0
-	+	18	0
-	+	8	0
-	+	12	20
-	+	18	0
-	+	15	0
-	+	16	28
-	+	14	96
-	+	17	34
-	+	16	0
-	+	17	38
-	+	14	36
-	+	17	90
-	+	12	0
 
 > ~/scripts/nodeserver.sh
 	"	1	22

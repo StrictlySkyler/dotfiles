@@ -1,21 +1,17 @@
 export PATH=$PATH:/usr/local/bin:/usr/local/sbin:/usr/local:/usr/bin:/usr/sbin:/opt/local/bin:/opt/local/sbin:/bin:/sbin:/usr/local/Cellar/imagemagick/6.7.7-6/bin:/usr/local/share/npm/bin:~/scripts:/usr/X11/bin:/Users/skyler/pear/bin
+export CDPATH=".:~:/Files:~/nerdwallet:~/Desktop:~/github"
 
 test -r /sw/bin/init.sh && . /sw/bin/init.sh
 
 # For node.js
 export NODE_PATH=/usr/local/lib/node
 
-# Colors in Terminal
-#export CLICOLOR=1
-#export LSCOLORS=ExFxCxDxBxegedabagacad
-
 # Avoid duplicates in History
 export HISTCONTROL=ignoredups:erasedups
 # Append History entries
 shopt -s histappend
-# After each command, save and reload history
-#export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
 
+# Source all the things!
 for file in ~/.{path,bash_prompt,exports,aliases,functions,extra}; do
   [ -r "$file" ] && source "$file"
 done
@@ -34,7 +30,15 @@ done
 which grunt > /dev/null && eval "$(grunt --completion=bash)"
 
 # If possible, add tab completion for many more commands
-[ -f /etc/bash_completion ] && source /etc/bash_completion
+if [ -f /usr/local/Cellar/bash-completion/1.3/etc/bash_completion ]
+then
+  . /usr/local/Cellar/bash-completion/1.3/etc/bash_completion
+elif [ -f /etc/bash_completion ]
+then
+  source /etc/bash_completion
+else
+  echo "No \"bash_completion\" package seems to be installed."
+fi
 
 # npm autocompletion
 . <(npm completion)
@@ -96,12 +100,7 @@ elif type compctl &>/dev/null; then
 fi
 ###-end-bower-completion-###
 
-##
-# Your previous /Users/skyler/.bash_profile file was backed up as /Users/skyler/.bash_profile.macports-saved_2013-07-10_at_00:22:14
-##
-
-# MacPorts Installer addition on 2013-07-10_at_00:22:14: adding an appropriate PATH variable for use with MacPorts.
-export PATH=/opt/local/bin:/opt/local/sbin:$PATH
-# Finished adapting your PATH environment variable for use with MacPorts.
-
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session     *as a function*
+
+# tmux helper
+complete -W "$(teamocil --list)" teamocil

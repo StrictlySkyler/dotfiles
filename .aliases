@@ -6,6 +6,8 @@ alias .....='cd ../../../..'
 
 #Applications
 alias sub='open -a "Sublime Text 2"'
+alias vi='vim'
+alias vim='/usr/local/Cellar/vim/7.4.161/bin/vim'
 
 #Managing ls
 if ls --color > /dev/null 2>&1; then # GNU `ls`
@@ -38,3 +40,5 @@ alias merge='git merge'
 alias add='git add -A'
 alias pull-request='git pull-request'
 alias git=hub
+alias rebase='git rebase'
+alias remote='git remote'

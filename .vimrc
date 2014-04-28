@@ -11,7 +11,7 @@ set autoindent
 
 " Configuration file for vim
 set modelines=0		" CVE-2007-2438
-set foldmethod=syntax
+"set foldmethod=syntax
 set nowrap
 
 " Normally we use vim-extensions. If you want true vi-compatibility
@@ -30,7 +30,7 @@ set laststatus=2
 set nopaste " Disallow normal pasting by default
 set colorcolumn=79 " Adding a ruler for the last usable line before 80.
 set list
-set listchars=eol:¬,tab:>_
+set listchars=eol:↵,tab:>_
 filetype indent plugin on	" use the file type plugins
 call pathogen#infect('~/.vim/bundle') " Autoinfect with plugins!
 
@@ -51,6 +51,15 @@ au BufWrite /private/etc/pw.* set nowritebackup
 set pastetoggle=<F2>
 map \] :tabn<Return>
 map \[ :tabp<Return>
+nnoremap <C-l> <C-w>l
+nnoremap <C-h> <C-w>h
+nnoremap <C-j> <C-w>j
+nnoremap <C-k> <C-w>k
+
+" https://github.com/wesQ3/vim-windowswap
+let g:windowswap_map_keys = 0 "prevent default bindings
+nnoremap <silent> <leader>yw :call WindowSwap#MarkWindowSwap()<CR>
+nnoremap <silent> <leader>pw :call WindowSwap#DoWindowSwap()<CR>
 
 " CtrlP Mappings: http://kien.github.io/ctrlp.vim/
 let g:ctrlp_map = '<c-p>'

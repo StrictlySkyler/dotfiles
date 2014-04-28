@@ -3,6 +3,7 @@
 	email = skyler.brungardt@gmail.com
 [github]
 	user = StrictlySkyler
+	token = bb3e8e39b18990d372ab7487ea978cb2
 [core]
 	excludesfile = /Users/skyler/.gitignore_global
 [difftool "sourcetree"]
@@ -11,6 +12,13 @@
 [mergetool "sourcetree"]
 	cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
 	trustExitCode = true
+[difftool "Kaleidoscope"]
+	cmd = ksdiff-wrapper git \"$LOCAL\" \"$REMOTE\"
+[mergetool "Kaleidoscope"]
+	cmd = ksdiff --merge --output \"$MERGED\" --base \"$BASE\" -- \"$LOCAL\" --snapshot \"$REMOTE\" --snapshot
+	trustExitCode = true
+[mergetool]
+	prompt = false
 [color]
 	ui = true
 [merge]
@@ -26,3 +34,5 @@
 [help]
 	autocorrect = 1
 [hub]
+[difftool]
+	prompt = false

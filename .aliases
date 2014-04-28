@@ -32,8 +32,9 @@ alias lscleanup="/System/Library/Frameworks/CoreServices.framework/Frameworks/La
 
 #Git Commands
 alias status='git status'
+alias st='git status'
 alias checkout='git checkout'
-alias commit='git commit -a'
+alias commit='git commit'
 alias pull='git pull'
 alias push='git push'
 alias merge='git merge'
@@ -42,3 +43,6 @@ alias pull-request='git pull-request'
 alias git=hub
 alias rebase='git rebase'
 alias remote='git remote'
+alias mergetool='git mergetool'
+alias branch='git branch'
+alias stash='git stash'

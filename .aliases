@@ -7,19 +7,19 @@ alias .....='cd ../../../..'
 #Applications
 alias sub='open -a "Sublime Text 2"'
 alias vi='vim'
-alias vim='/usr/local/Cellar/vim/7.4.161/bin/vim'
+alias vim='/usr/local/Cellar/vim/**/bin/vim'
 
-#Managing ls
-if ls --color > /dev/null 2>&1; then # GNU `ls`
-  colorflag='--color'
-else # OS X `ls`
-  colorflag='-G'
-fi
+##Managing ls
+#if ls --color > /dev/null 2>&1; then # GNU `ls`
+  #colorflag='--color'
+#else # OS X `ls`
+  #colorflag='-G'
+#fi
 
-alias l='ls -l ${colorflag}'
-alias ll='ls -lahFT ${colorflag}'
-#Always use color flag
-alias ls='command ls ${colorflag}'
+#alias l='ls -l ${colorflag}'
+#alias ll='ls -lahFT ${colorflag}'
+##Always use color flag
+#alias ls='command ls ${colorflag}'
 
 #Clear the terminal
 alias cl='clear'

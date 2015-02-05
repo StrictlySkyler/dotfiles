@@ -30,6 +30,7 @@ if [[ "$PLATFORM" == 'Darwin' ]]; then
   alias top='vtop'
   alias oldtop='/usr/bin/top'
 
+  alias git=hub
 fi
 
 #Clear the terminal
@@ -45,7 +46,6 @@ alias push='git push'
 alias merge='git merge'
 alias add='git add -A'
 alias pull-request='git pull-request'
-alias git=hub
 alias rebase='git rebase'
 alias remote='git remote'
 alias mergetool='git mergetool'

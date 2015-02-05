@@ -5,16 +5,16 @@ alias ....='cd ../../..'
 alias .....='cd ../../../..'
 
 #Applications
-alias sub='open -a "Sublime Text 2"'
+alias sub='open -a "Sublime Text"'
 alias vi='vim'
 alias vim='/usr/local/Cellar/vim/**/bin/vim'
 
 ##Managing ls
-#if ls --color > /dev/null 2>&1; then # GNU `ls`
-  #colorflag='--color'
-#else # OS X `ls`
-  #colorflag='-G'
-#fi
+if ls --color > /dev/null 2>&1; then # GNU `ls`
+  colorflag='--color'
+else # OS X `ls`
+  colorflag='-G'
+fi
 
 #alias l='ls -l ${colorflag}'
 #alias ll='ls -lahFT ${colorflag}'
@@ -46,3 +46,16 @@ alias remote='git remote'
 alias mergetool='git mergetool'
 alias branch='git branch'
 alias stash='git stash'
+alias pr='~/bin/./pull-request.sh'
+alias gpu='git push -u origin $(git rev-parse --abbrev-ref HEAD)'
+alias gcob='gco -b'
+
+# Trash (https://github.com/sindresorhus/trash)
+alias remove='/bin/rm'
+alias t='trash'
+alias rm='trash'
+
+# Better top: https://github.com/MrRio/vtop
+alias top='vtop'
+alias oldtop='/usr/bin/top'
+

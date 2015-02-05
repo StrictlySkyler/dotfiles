@@ -21,7 +21,7 @@ export git_setup_aliases="yes"
 export GIT_REPO_DIR="$HOME"
 # Add the full paths of any extra repos to GIT_REPOS, separated with ':'
 # e.g. "/opt/rails/project:/opt/rails/another project:$HOME/other/repo"
-export GIT_REPOS="$HOME/nerdwallet/dev-vagrant/www/app-site:$HOME/nerdwallet/dev-vagrant/www/blog:$HOME/nerdwallet/dev-vagrant/www/financial-advisors:$HOME/nerdwallet/dev-vagrant/www/global-styles:$HOME/nerdwallet/dev-vagrant/www/lib-common:$HOME/nerdwallet/dev-vagrant/www/lib-gl:$HOME/nerdwallet/dev-vagrant/www/lib-layout"
+export GIT_REPOS=""
 export git_status_command="git_status_shortcuts"
 # Alias
 git_index_alias="c"    # Switch to a repo in the (c)ode directory
@@ -40,7 +40,7 @@ git_show_files_alias="gsf"
 exec_scmb_expand_args_alias="ge"
 # 2. Commands that handle paths (with shortcut args expanded)
 git_checkout_alias="gco"
-git_checkout_branch_alias="gcob"
+git_checkout_branch_alias="gcb"
 git_commit_alias="gc"
 git_commit_verbose_alias="gcv"
 git_reset_alias="grs"
@@ -95,6 +95,8 @@ git_stash_apply_alias="gasha"
 git_stash_pop_alias="gashp"
 git_stash_list_alias="gashl"
 git_tag_alias="gt"
+# Hub aliases (https://github.com/github/hub)
+git_pull_request_alias="gpr"
 
 
 # Git Keyboard Shortcuts

@@ -24,7 +24,7 @@ set backspace=indent,eol,start
 set whichwrap=h,l,b,<,>,~,[,]
 set iskeyword-=_
 set showmode
-set cursorline
+set cursorline cursorcolumn
 
 " Normally we use vim-extensions. If you want true vi-compatibility
 " remove change the following statements
@@ -47,7 +47,7 @@ set statusline=%F%m%r%h%w\ [FORMAT=%{&ff}]\ [TYPE=%Y]\ [ASCII=\%03.3b]\ [HEX=\%0
 set statusline+=%{exists('g:loaded_fugitive')?fugitive#statusline():''}
 set laststatus=2
 set nopaste " Disallow normal pasting by default
-set colorcolumn=79,99 " Adding a ruler for the last usable line before 80.
+set colorcolumn=80,100 " Adding a ruler for the last usable line before 80.
 set list
 set title
 set listchars=eol:↵,tab:»·,trail:·

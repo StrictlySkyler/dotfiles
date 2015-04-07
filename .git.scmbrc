@@ -5,7 +5,7 @@
 #   (I chose 'e' because it is easy to slide your finger to it from '$'.)
 export git_env_char="e"
 # - Max changed files before reverting to 'git status'. git_status_shortcuts() will be slower for lots of changed files.
-export gs_max_changes="150"
+export gs_max_changes="500"
 # - When using the git_add_shorcuts() command, automatically invoke 'git rm' to remove deleted files?
 export ga_auto_remove="yes"
 
@@ -21,7 +21,7 @@ export git_setup_aliases="yes"
 export GIT_REPO_DIR="$HOME"
 # Add the full paths of any extra repos to GIT_REPOS, separated with ':'
 # e.g. "/opt/rails/project:/opt/rails/another project:$HOME/other/repo"
-export GIT_REPOS=""
+export GIT_REPOS="$HOME/nerdwallet/dev-vagrant/www/app-site:$HOME/nerdwallet/dev-vagrant/www/blog:$HOME/nerdwallet/dev-vagrant/www/financial-advisors:$HOME/nerdwallet/dev-vagrant/www/global-styles:$HOME/nerdwallet/dev-vagrant/www/lib-common:$HOME/nerdwallet/dev-vagrant/www/lib-gl:$HOME/nerdwallet/dev-vagrant/www/lib-layout"
 export git_status_command="git_status_shortcuts"
 # Alias
 git_index_alias="c"    # Switch to a repo in the (c)ode directory

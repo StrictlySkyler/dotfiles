@@ -35,7 +35,6 @@ export NODE_ENV="development"
 
 # Meteor.js
 export NODE_OPTIONS="--debug=5858"
-export ROOT_URL="http://$(ipconfig getifaddr en0)"
 
 # General coding
 export DEV_ENV="development"
@@ -48,3 +47,11 @@ export PIP2EVAL_TMP_FILE_PATH=/tmp/shm
 
 # Zsh et al
 export ZSH_PLUGINS_ALIAS_TIPS_TEXT="Alias for this command: "
+
+# nvm
+export NVM_IOJS_ORG_MIRROR=https://iojs.org/dist
+
+# Docker
+export DOCKER_TLS_VERIFY=1
+export DOCKER_HOST=tcp://192.168.59.103:2376
+export DOCKER_CERT_PATH=/Users/skyler/.boot2docker/certs/boot2docker-vm

@@ -1,5 +1,5 @@
 # Path to your oh-my-zsh installation.
-export ZSH=$HOME/.oh-my-zsh
+export ZSH=/home/skyler/.oh-my-zsh
 
 # Set name of the theme to load.
 # Look in ~/.oh-my-zsh/themes/
@@ -7,10 +7,6 @@ export ZSH=$HOME/.oh-my-zsh
 # time that oh-my-zsh is loaded.
 ZSH_THEME="agnoster"
 DEFAULT_USER="skyler"
-
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
 
 # Uncomment the following line to use case-sensitive completion.
 # CASE_SENSITIVE="true"
@@ -26,9 +22,6 @@ DEFAULT_USER="skyler"
 
 # Uncomment the following line to disable auto-setting terminal title.
 # DISABLE_AUTO_TITLE="true"
-
-# Uncomment the following line to disable command auto-correction.
-# DISABLE_CORRECTION="true"
 
 # Uncomment the following line to enable command auto-correction.
 # ENABLE_CORRECTION="true"
@@ -52,22 +45,26 @@ COMPLETION_WAITING_DOTS="true"
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
-plugins=(autojump git bower brew compleat git-extras git-hubflow jsontools macports npm nyan python ruby screen sudo tmux tmuxinator vagrant web-search wd colored-man colorize command-not-found copydir cp copyfile extract pj jump battery emoji-clock encode64 mosh safe-paste screen sprunge sfffe forklift osx terminalapp lol rand-quote history)
+# Add wisely, as too many plugins slow down shell startup.
+plugins=(autojump git bower brew compleat git-extras git-hubflow jsontools macports npm nyan python ruby screen sudo tmux web-search wd colored-man colorize command-not-found copydir cp copyfile extract pj jump battery encoded64 mosh safe-paste screen sprunge forklift history)
 #plugins=(git)
-
-source $ZSH/oh-my-zsh.sh
 
 # User configuration
 
-export PATH="/Users/skyler/.rvm/gems/ruby-2.0.0-p247/bin:/Users/skyler/.rvm/gems/ruby-2.0.0-p247@global/bin:/Users/skyler/.rvm/rubies/ruby-2.0.0-p247/bin:/Users/skyler/.rvm/bin:/Users/skyler/.rvm/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/X11/bin:/usr/texbin:/usr/local/sbin:/usr/local:/usr/bin:/usr/sbin:/opt/local/bin:/opt/local/sbin:/bin:/sbin:/usr/local/Cellar/imagemagick/6.7.7-6/bin:/usr/local/share/npm/bin:~/bin:/usr/X11/bin:/Users/skyler/pear/bin:/Users/skyler/bin"
-export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
-
-test -r /sw/bin/init.sh && . /sw/bin/init.sh
-export CDPATH=$CDPATH:".:~:/Files:~/nerdwallet:~/Desktop:~/repos"
+export PATH="$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/home/skyler/bin:/home/skyler/bin/java/bin"
 # export MANPATH="/usr/local/man:$MANPATH"
+
+source $ZSH/oh-my-zsh.sh
 
 # You may need to manually set your language environment
 # export LANG=en_US.UTF-8
+
+# Preferred editor for local and remote sessions
+# if [[ -n $SSH_CONNECTION ]]; then
+#   export EDITOR='vim'
+# else
+#   export EDITOR='mvim'
+# fi
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
@@ -75,14 +72,16 @@ export CDPATH=$CDPATH:".:~:/Files:~/nerdwallet:~/Desktop:~/repos"
 # ssh
 # export SSH_KEY_PATH="~/.ssh/dsa_id"
 
-[ -s "/Users/skyler/.scm_breeze/scm_breeze.sh" ] && source "/Users/skyler/.scm_breeze/scm_breeze.sh"
+# Set personal aliases, overriding those provided by oh-my-zsh libs,
+# plugins, and themes. Aliases can be placed here, though oh-my-zsh
+# users are encouraged to define aliases within the ZSH_CUSTOM folder.
+# For a full list of active aliases, run `alias`.
+#
+# Example aliases
+# alias zshconfig="mate ~/.zshrc"
+# alias ohmyzsh="mate ~/.oh-my-zsh"
 
-# Some safeguarding for 'rm':
 unsetopt RM_STAR_SILENT
-
-# Learn a language with each git commit!
-export LANG=fr
-git(){[[ "$@" = commit\ -m*  ]]&&normit en $LANG ${${@:$#}//./} -t;command hub $@}
 
 ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets pattern cursor root line)
 
@@ -94,13 +93,34 @@ antigen bundle zsh-users/zsh-syntax-highlighting
 
 antigen apply
 
+export NVM_DIR="/home/skyler/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
+
+export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
+
+export PATH="/home/skyler/.linuxbrew/bin:$PATH" # For homebrew
+
 source ~/.aliases
 source ~/.exports
 source ~/.git.scmbrc
 
-
-# zsh-bd
-. $HOME/.zsh/plugins/bd/bd.zsh
-
 bindkey '^f' forward-word
 bindkey '^b' backward-word
+
+[ -s "/home/skyler/.scm_breeze/scm_breeze.sh" ] && source "/home/skyler/.scm_breeze/scm_breeze.sh"
+
+source ~/t-completion.zsh
+source ~/repos/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source ~/repos/git-hub/init
+
+#Rebind HOME and END to do the decent thing:
+bindkey '\e[H' beginning-of-line
+bindkey '\e[F' end-of-line
+
+# ctrl-left/right
+bindkey "\e[1;5C" forward-word
+bindkey "\e[1;5D" backward-word
+
+# ctrl-backspace/delete
+bindkey "\e^?" backward-kill-word
+bindkey "\e[3;5~" kill-word

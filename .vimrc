@@ -32,8 +32,15 @@ set backspace=2 " more powerful backspacing
 set history=100 " keep 100 lines of history
 syntax on " syntax highlighting
 syntax enable
+let g:solarized_termcolors=256
+set t_Co=256
 set background=dark
 colorscheme solarized " Set the color to something decent.
+highlight Normal ctermbg=NONE
+highlight Comment ctermfg=30
+highlight ColorColumn ctermbg=256
+highlight CursorColumn ctermbg=256
+highlight CursorLine ctermbg=256
 set number
 set relativenumber  " Set relative line numbers
 set nohls   " Disable highliting of search terms.
@@ -56,7 +63,7 @@ set ttyfast
 set linebreak
 set mouse=a
 set ttymouse=xterm2
-set wrap
+set nowrap
 set clipboard=unnamed
 
 " Airline
@@ -205,3 +212,4 @@ command! -nargs=? -range=% RetabIndent call IndentConvert(<line1>,<line2>,&et,<q
 " https://github.com/plasticboy/vim-markdown/
 let g:vim_markdown_initial_foldlevel=1
 
+let g:indentLine_noConcealCursor=""

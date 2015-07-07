@@ -5,30 +5,12 @@ alias ....='cd ../../..'
 alias .....='cd ../../../..'
 
 #Applications
-alias sub='open -a "Sublime Text"'
 alias vi='vim'
-alias vim='/usr/local/Cellar/vim/**/bin/vim'
 
-##Managing ls
-if ls --color > /dev/null 2>&1; then # GNU `ls`
-  colorflag='--color'
-else # OS X `ls`
-  colorflag='-G'
-fi
-
-#alias l='ls -l ${colorflag}'
-#alias ll='ls -lahFT ${colorflag}'
-##Always use color flag
-#alias ls='command ls ${colorflag}'
+alias cp='/usr/local/bin/vcp'
 
 #Clear the terminal
 alias cl='clear'
-
-#Get OSX Software Updates, along with Ruby gems, Homebrew, npm, and packages installed by them
-alias update='sudo softwareupdate -i -a; brew update; brew upgrade; brew cleanup; npm update npm -g; npm update -g; sudo gem update'
-
-# Clean up LaunchServices to remove duplicates in the “Open With” menu
-alias lscleanup="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -kill -r -domain local -domain system -domain user && killall Finder"
 
 #Git Commands
 alias status='git status'
@@ -52,7 +34,6 @@ alias gcob='gco -b'
 
 # Trash (https://github.com/sindresorhus/trash)
 alias remove='/bin/rm'
-alias t='trash'
 alias rm='trash'
 
 # Better top: https://github.com/MrRio/vtop

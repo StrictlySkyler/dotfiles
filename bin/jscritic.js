@@ -1,1 +1,0 @@
-/Users/skyler/repos/jscritic/jscritic.js

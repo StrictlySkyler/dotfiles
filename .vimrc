@@ -1,6 +1,7 @@
 set nocompatible " Make vi into vim, and thus more useful
 filetype indent plugin on " use the file type plugins
 filetype plugin on
+runtime macros/matchit.vim
 call pathogen#infect('~/.vim/bundle/{}') " Autoinfect with plugins!
 
 " Set tab stops to 2 columns, rather than the default linux 8
@@ -16,7 +17,6 @@ set autoindent
 " Configuration file for vim
 set modelines=0		" CVE-2007-2438
 "set foldmethod=syntax
-set nowrap
 set scrolloff=5
 set sidescrolloff=5
 set sidescroll=1
@@ -25,6 +25,10 @@ set whichwrap=h,l,b,<,>,~,[,]
 set iskeyword-=_
 set showmode
 set cursorline cursorcolumn
+set wrap linebreak nolist
+set breakindent
+set showbreak=..
+set linebreak
 
 " Normally we use vim-extensions. If you want true vi-compatibility
 " remove change the following statements
@@ -63,7 +67,6 @@ set ttyfast
 set linebreak
 set mouse=a
 set ttymouse=xterm2
-set nowrap
 set clipboard=unnamed
 
 " Airline

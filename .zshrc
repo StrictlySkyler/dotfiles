@@ -90,6 +90,7 @@ source ~/antigen.zsh
 antigen bundle djui/alias-tips
 antigen bundle tarrasch/zsh-colors
 antigen bundle zsh-users/zsh-syntax-highlighting
+antigen bundle rimraf/k
 
 antigen apply
 

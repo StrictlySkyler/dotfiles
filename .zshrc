@@ -46,7 +46,7 @@ COMPLETION_WAITING_DOTS="true"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(autojump git bower brew compleat git-extras git-hubflow jsontools macports npm nyan python ruby screen sudo tmux web-search wd colored-man colorize command-not-found copydir cp copyfile extract pj jump battery encoded64 mosh safe-paste screen sprunge forklift history)
+plugins=(autojump git bower brew compleat git-extras git-hubflow jsontools macports npm nyan python ruby screen sudo tmux web-search wd colored-man colorize command-not-found copydir cp copyfile extract pj jump battery encoded64 mosh safe-paste screen sprunge forklift history z)
 #plugins=(git)
 
 # User configuration
@@ -125,3 +125,6 @@ bindkey "\e[1;5D" backward-word
 # ctrl-backspace/delete
 bindkey "\e^?" backward-kill-word
 bindkey "\e[3;5~" kill-word
+
+# https://github.com/rupa/z.git
+. ~/z.sh

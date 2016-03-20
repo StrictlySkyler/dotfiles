@@ -16,7 +16,8 @@ set autoindent
 
 " Configuration file for vim
 set modelines=0		" CVE-2007-2438
-"set foldmethod=syntax
+set foldmethod=syntax
+set nofoldenable " Folding seems janky, disabling for now
 set scrolloff=5
 set sidescrolloff=5
 set sidescroll=1
@@ -25,10 +26,10 @@ set whichwrap=h,l,b,<,>,~,[,]
 set iskeyword-=_
 set showmode
 set cursorline cursorcolumn
-set wrap linebreak nolist
-set breakindent
+set wrap nolist
 set showbreak=..
 set linebreak
+set breakindent
 
 " Normally we use vim-extensions. If you want true vi-compatibility
 " remove change the following statements
@@ -42,9 +43,9 @@ set background=dark
 colorscheme solarized " Set the color to something decent.
 highlight Normal ctermbg=NONE
 highlight Comment ctermfg=30
-highlight ColorColumn ctermbg=256
-highlight CursorColumn ctermbg=256
-highlight CursorLine ctermbg=256
+highlight ColorColumn ctermbg=235
+highlight CursorColumn ctermbg=235
+highlight CursorLine ctermbg=235
 set number
 set relativenumber  " Set relative line numbers
 set nohls   " Disable highliting of search terms.
@@ -179,7 +180,10 @@ endif
 autocmd StdinReadPre * let s:std_in=1
 autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
 map <C-n> :NERDTreeToggle<CR>
-autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
+" The following line no longer seems to work...
+"autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
+" ...But this one purportedly does.
+autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
 
 " Converting between Tabs and Spaces with these nice functions:
 

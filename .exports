@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Make vim the default editor
 export EDITOR="vim"
 
@@ -6,9 +8,6 @@ export LESS_TERMCAP_md="$ORANGE"
 
 # Don’t clear the screen after quitting a manual page
 export MANPAGER="less -X"
-
-# Always enable colored `grep` output
-export GREP_OPTIONS="--color=auto"
 
 # Node.js
 export NODE_ENV="development"
@@ -31,7 +30,27 @@ export ZSH_PLUGINS_ALIAS_TIPS_TEXT="Alias for this command: "
 # nvm
 export NVM_IOJS_ORG_MIRROR=https://iojs.org/dist
 
+# rvm
+export rvmsudo_secure_path=1
+
+# Go
+export GOPATH=$HOME/go
+
+#True&Co
+export SDC_ACCOUNT=trueandco
+export SDC_KEY_ID=14:53:5c:61:b6:c7:6b:b4:ce:dd:8f:82:bb:ef:78:40
+export SDC_URL=https://api.joyentcloud.com
+export MYSQL_SERVER_ID=2
+
+# AWS
+export AWS_ACCESS_KEY_ID=AKIAIPOO6OLJCS7B3DAA
+export AWS_SECRET_ACCESS_KEY=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
+export AWS_VPC_ID=vpc-3e4a8a5b
+export AWS_DEFAULT_REGION=us-east-1
+
 # Docker
-export DOCKER_TLS_VERIFY=1
-export DOCKER_HOST=tcp://192.168.59.103:2376
-export DOCKER_CERT_PATH=/Users/skyler/.boot2docker/certs/boot2docker-vm
+export AWS_SWARM_TOKEN=4ddb50e41869fec6d296219bbc35ecfe
+
+# Android
+export ANDROID_HOME=~/Android/Sdk
+export ANDROID_NDK_HOME=~/Android/android-ndk-r10e

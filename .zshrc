@@ -46,12 +46,11 @@ COMPLETION_WAITING_DOTS="true"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(autojump git bower brew compleat git-extras git-hubflow jsontools macports npm nyan python ruby screen sudo tmux web-search wd colored-man colorize command-not-found copydir cp copyfile extract pj jump battery encoded64 mosh safe-paste screen sprunge forklift history z)
+plugins=(autojump git bower brew compleat docker git-extras git-hubflow jsontools macports npm nyan python ruby screen sudo tmux web-search wd colored-man colorize command-not-found copydir cp copyfile extract pj jump battery encoded64 mosh safe-paste screen sprunge forklift history z)
 #plugins=(git)
 
 # User configuration
 
-export PATH="$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/home/skyler/bin:/home/skyler/bin/java/bin"
 # export MANPATH="/usr/local/man:$MANPATH"
 
 source $ZSH/oh-my-zsh.sh
@@ -90,16 +89,11 @@ source ~/antigen.zsh
 antigen bundle djui/alias-tips
 antigen bundle tarrasch/zsh-colors
 antigen bundle zsh-users/zsh-syntax-highlighting
-antigen bundle rimraf/k
 
 antigen apply
 
 export NVM_DIR="/home/skyler/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
-
-export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
-
-export PATH="/home/skyler/.linuxbrew/bin:$PATH" # For homebrew
 
 source ~/.aliases
 source ~/.exports
@@ -111,7 +105,7 @@ bindkey '^b' backward-word
 [ -s "/home/skyler/.scm_breeze/scm_breeze.sh" ] && source "/home/skyler/.scm_breeze/scm_breeze.sh"
 
 source ~/t-completion.zsh
-source ~/repos/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source ~/.vim/bundle/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/repos/git-hub/init
 
 #Rebind HOME and END to do the decent thing:
@@ -128,3 +122,25 @@ bindkey "\e[3;5~" kill-word
 
 # https://github.com/rupa/z.git
 . ~/z.sh
+
+# Fire up ssh key agent at login
+if [ ! -z "$SSH_AUTH_SOCK" ]; then
+  eval "$(ssh-agent -s)"
+  ssh-add
+fi
+
+export MAIL=/var/spool/mail/skyler && export MAIL
+
+# Let's cron have access to display for notify-send
+touch $HOME/.dbus/Xdbus
+chmod 600 $HOME/.dbus/Xdbus
+env | grep DBUS_SESSION_BUS_ADDRESS > $HOME/.dbus/Xdbus
+echo 'export DBUS_SESSION_BUS_ADDRESS' >> $HOME/.dbus/Xdbus
+
+fpath=(~/.zsh/completion $fpath)
+autoload -Uz compinit && compinit -i
+
+export PATH="$PATH:$HOME/.linuxbrew/bin:$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/home/skyler/bin:/home/skyler/bin/java/bin:$GOPATH/bin:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_NDK_HOME/"
+export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
+
+[[ -s "$HOME/.rvm/scripts/rvm"  ]] && source "$HOME/.rvm/scripts/rvm"

@@ -1,38 +1,9 @@
 [user]
-	name = Skyler Brungardt
 	email = skyler.brungardt@gmail.com
-[github]
-	user = StrictlySkyler
-	token = bb3e8e39b18990d372ab7487ea978cb2
-[core]
-	excludesfile = /Users/skyler/.gitignore_global
-[difftool "sourcetree"]
-	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path = 
-[mergetool "sourcetree"]
-	cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
-	trustExitCode = true
-[difftool "Kaleidoscope"]
-	cmd = ksdiff-wrapper git \"$LOCAL\" \"$REMOTE\"
-[mergetool "Kaleidoscope"]
-	cmd = ksdiff --merge --output \"$MERGED\" --base \"$BASE\" -- \"$LOCAL\" --snapshot \"$REMOTE\" --snapshot
-	trustExitCode = true
-[mergetool]
-	prompt = false
-[color]
-	ui = true
-[merge]
-	conflictstyle = diff3
-	tool = kdiff3
-[push]
-	default = upstream
-[diff]
-	tool = kdiff3
-	renameLimit = 50000
+	name = Skyler Brungardt
 [credential]
-	helper = osxkeychain
-[help]
-	autocorrect = 1
-[hub]
-[difftool]
-	prompt = false
+	helper = /usr/share/doc/git/contrib/credential/gnome-keyring/git-credential-gnome-keyring
+[push]
+	default = simple
+[config]
+	mergetool = kdiff3

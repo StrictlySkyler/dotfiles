@@ -6,11 +6,20 @@ alias .....='cd ../../../..'
 
 #Applications
 alias vi='vim'
+alias vim='/usr/bin/vim'
+alias cp='pycp'
+alias mv='pymv'
+alias ag='sift'
+alias pt='sift'
+alias google='/usr/local/bin/google -C'
+alias doc='docker'
+alias dock='docker'
+alias dc='docker-compose'
+alias dm='docker-machine'
 
-alias cp='/usr/local/bin/vcp'
-
-#Clear the terminal
 alias cl='clear'
+alias ps='ps aux|sift'
+alias rl='source ~/.zshrc'
 
 #Git Commands
 alias status='git status'
@@ -40,3 +49,5 @@ alias rm='trash'
 alias top='vtop'
 alias oldtop='/usr/bin/top'
 
+# Ansiweather: https://github.com/fcambus/ansiweather
+alias weather='ansiweather -u imperial'

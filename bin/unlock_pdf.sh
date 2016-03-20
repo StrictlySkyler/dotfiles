@@ -1,6 +1,6 @@
 #!/bin/bash
 
-: <<'END'
+: <<'USAGE'
 This script uses GhostScript to unlock a PDf.
 
 The path/name of the PDF is the only argument the script takes:
@@ -18,7 +18,12 @@ which the script will concat to the end of the file name instead:
   ./unlock_pdf.sh path/to/your/file.pdf "_bwahahaha"
   > path/to/your/file_bwahahaha.pdf
 
-This script has only been tested with GhostScript 9.10 on Mac OS 10.9.2, so 
+This script has been tested with the following versions of GhostScript:
+
+- 9.10 on Mac OS 10.9.2
+- 9.10 on Ubuntu 14.10
+- 9.16 on Ubuntu 15.10
+
 YMMV.
 
 ********
@@ -40,7 +45,7 @@ symbols in it.  Namely:
 Author:   Skyler Brungardt
 Date:     2014-04-06
 License:  GPL 3.0
-END
+USAGE
 
 file=$1
 newfile=${file%.pdf}
@@ -52,5 +57,5 @@ else
   suffix=$2
 fi
 
-gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=$newfile$suffix$pdf -c .setpdfwrite -f $1
+ghostscript -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=$newfile$suffix$pdf -c .setpdfwrite -f $1
 

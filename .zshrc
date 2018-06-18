@@ -5,6 +5,7 @@ export ZSH=/home/skyler/.oh-my-zsh
 # Look in ~/.oh-my-zsh/themes/
 # Optionally, if you set this to "random", it'll load a random theme each
 # time that oh-my-zsh is loaded.
+#ZSH_THEME="powerlevel9k/powerlevel9k"
 ZSH_THEME="agnoster"
 DEFAULT_USER="skyler"
 
@@ -46,7 +47,7 @@ COMPLETION_WAITING_DOTS="true"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(autojump git bower brew compleat docker git-extras git-hubflow jsontools macports npm nyan python ruby screen sudo tmux web-search wd colored-man colorize command-not-found copydir cp copyfile extract pj jump battery encoded64 mosh safe-paste screen sprunge forklift history z)
+plugins=(autojump git bower brew compleat docker git-extras git-hubflow jsontools macports npm nyan python ruby screen sudo tmux web-search wd colored-man colorize command-not-found copydir cp copyfile extract pj jump battery encoded64 mosh safe-paste screen sprunge forklift history z zsh-autosuggestions)
 #plugins=(git)
 
 # User configuration
@@ -94,19 +95,18 @@ antigen apply
 
 export NVM_DIR="/home/skyler/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
+alias sudo='sudo env PATH=$PATH:$NVM_BIN'
 
 source ~/.aliases
 source ~/.exports
 source ~/.git.scmbrc
 
+ZSH_AUTOSUGGEST_USE_ASYNC=true
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=green'
+bindkey '^ ' autosuggest-execute
+
 bindkey '^f' forward-word
 bindkey '^b' backward-word
-
-[ -s "/home/skyler/.scm_breeze/scm_breeze.sh" ] && source "/home/skyler/.scm_breeze/scm_breeze.sh"
-
-source ~/t-completion.zsh
-source ~/.vim/bundle/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-source ~/repos/git-hub/init
 
 #Rebind HOME and END to do the decent thing:
 bindkey '\e[H' beginning-of-line
@@ -120,27 +120,21 @@ bindkey "\e[1;5D" backward-word
 bindkey "\e^?" backward-kill-word
 bindkey "\e[3;5~" kill-word
 
-# https://github.com/rupa/z.git
-. ~/z.sh
-
 # Fire up ssh key agent at login
 if [ ! -z "$SSH_AUTH_SOCK" ]; then
   eval "$(ssh-agent -s)"
   ssh-add
 fi
 
-export MAIL=/var/spool/mail/skyler && export MAIL
-
-# Let's cron have access to display for notify-send
-touch $HOME/.dbus/Xdbus
-chmod 600 $HOME/.dbus/Xdbus
-env | grep DBUS_SESSION_BUS_ADDRESS > $HOME/.dbus/Xdbus
-echo 'export DBUS_SESSION_BUS_ADDRESS' >> $HOME/.dbus/Xdbus
-
 fpath=(~/.zsh/completion $fpath)
 autoload -Uz compinit && compinit -i
 
-export PATH="$PATH:$HOME/.linuxbrew/bin:$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/home/skyler/bin:/home/skyler/bin/java/bin:$GOPATH/bin:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_NDK_HOME/"
+export PATH="$PATH:$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/skyler/bin"
 export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
+export PATH="$PATH:$(yarn global bin)" # Adding yarn libraries, e.g. Appium, to path
+export PATH="$PATH:/Applications/Postgres.app/Contents/Versions/latest/bin"
 
+[ -s "/home/skyler/.scm_breeze/scm_breeze.sh" ] && source "/home/skyler/.scm_breeze/scm_breeze.sh"
 [[ -s "$HOME/.rvm/scripts/rvm"  ]] && source "$HOME/.rvm/scripts/rvm"
+
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion

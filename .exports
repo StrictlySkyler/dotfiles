@@ -11,9 +11,13 @@ export MANPAGER="less -X"
 
 # Node.js
 export NODE_ENV="development"
+export BACKEND_DATABASE_URL=localhost
+export SEED=0
+export UPDATE_CACHED_MODULES=0
 
 # Meteor.js
-export NODE_OPTIONS="--debug=5858"
+#export NODE_OPTIONS="--debug=5858"
+export METEOR_ALLOW_SUPERUSER=true
 
 # General coding
 export DEV_ENV="development"
@@ -36,21 +40,8 @@ export rvmsudo_secure_path=1
 # Go
 export GOPATH=$HOME/go
 
-#True&Co
-export SDC_ACCOUNT=trueandco
-export SDC_KEY_ID=14:53:5c:61:b6:c7:6b:b4:ce:dd:8f:82:bb:ef:78:40
-export SDC_URL=https://api.joyentcloud.com
-export MYSQL_SERVER_ID=2
-
-# AWS
-export AWS_ACCESS_KEY_ID=AKIAIPOO6OLJCS7B3DAA
-export AWS_SECRET_ACCESS_KEY=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
-export AWS_VPC_ID=vpc-3e4a8a5b
-export AWS_DEFAULT_REGION=us-east-1
-
 # Docker
 export AWS_SWARM_TOKEN=4ddb50e41869fec6d296219bbc35ecfe
 
-# Android
-export ANDROID_HOME=~/Android/Sdk
-export ANDROID_NDK_HOME=~/Android/android-ndk-r10e
+# Git
+export GIT_ASKPASS=`which ksshaskpass`

@@ -1,4 +1,3 @@
-https://github.com/Valloric/YouCompleteMe.git
 git://github.com/jiangmiao/auto-pairs.git
 git://github.com/tacahiroy/ctrlp-funky.git
 https://github.com/kien/ctrlp.vim.git
@@ -17,7 +16,8 @@ https://github.com/tpope/vim-surround.git
 https://github.com/tpope/vim-repeat.git
 https://github.com/tpope/vim-abolish.git
 https://github.com/tpope/vim-speeddating.git
-git://github.com/altercation/vim-colors-solarized.git
+https://github.com/thomwiggers/vim-colors-solarized.git
+https://github.com/airblade/vim-gitgutter.git
 https://github.com/kchmck/vim-coffee-script.git
 https://github.com/bling/vim-airline
 https://github.com/Lokaltog/vim-easymotion
@@ -32,3 +32,10 @@ https://github.com/vim-ruby/vim-ruby.git
 https://github.com/tpope/vim-rails.git
 https://github.com/vim-scripts/ruby-matchit.git
 https://github.com/voithos/vim-python-matchit.git
+https://github.com/ajh17/VimCompletesMe.git
+git://github.com/tpope/vim-sleuth.git
+https://github.com/nrocco/vim-phplint.git
+https://github.com/tpope/vim-eunuch
+https://github.com/tpope/vim-unimpaired
+https://github.com/tpope/vim-db
+https://github.com/tpope/vim-afterimage

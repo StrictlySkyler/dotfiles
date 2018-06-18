@@ -78,9 +78,39 @@ autocmd FileType * setlocal formatoptions-=r formatoptions-=o
 
 " Duh.  Should be default.
 command! Q q
+command! Qa qa
 command! W w
+command! Wa wa
 
 let g:html_intdent_tags='li\|p'
+
+" Syntastic
+set statusline+=%#warningmsg#
+set statusline+=%{SyntasticStatuslineFlag()}
+set statusline+=%*
+
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_loc_list_height = 5
+let g:syntastic_auto_loc_list = 0
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 1
+let g:syntastic_javascript_checkers = ['eslint']
+
+let g:syntastic_error_symbol = '❌'
+let g:syntastic_style_error_symbol = '⁉️'
+let g:syntastic_warning_symbol = '⚠️'
+let g:syntastic_style_warning_symbol = '💩'
+
+highlight link SyntasticErrorSign SignColumn
+highlight link SyntasticWarningSign SignColumn
+highlight link SyntasticStyleErrorSign SignColumn
+highlight link SyntasticStyleWarningSign SignColumn
+
+hi SpellBad ctermfg=015 ctermbg=196 guifg=#ffffff guibg=#ff0000
+hi SpellCap ctermfg=015 ctermbg=202 guifg=#ffffff guibg=#ff5f00
+
+let g:gitgutter_override_sign_column_highlight = 0
+highlight SignColumn ctermfg=196 ctermbg=236
 
 " Resize splits if the window is resized
 au VimResized * exe "normal! \<c-w>="
@@ -125,6 +155,7 @@ let g:ctrlp_cmd = 'CtrlP'
 let g:ctrlp_working_path_mode = 'ra'
 set wildignore+=*/tmp/*,*.so,*.swp,*.zip
 let g:ctrlp_custom_ignore = '\v[\/]\.(git|hg|svn)$'
+let g:ctrlp_user_command = 'sift -i --no-conf --no-color --no-group --targets --exclude-dirs=".git" --exclude-ext="min.js,dat,exe,gif,png,jpeg,jpg,ico" %s'
 
 " CtrlPFunky
 let g:ctrlp_extensions = ['funky']
@@ -148,33 +179,6 @@ nmap <C-f> <plug>EasyClipSwapPasteBackwards
 " Unite.vim and the_platinum_searcher, if we have it
 nnoremap <silent> <Leader>g :<C-u>Unite grep:. -buffer-name=search-buffer<CR>
 nnoremap <silent> <Leader>u :Unite file_rec/async<CR>
-if executable('pt')
-  let g:unite_source_grep_command = 'pt'
-  let g:unite_source_grep_default_opts = '--nogroup --nocolor'
-  let g:unite_source_grep_recursive_opt = ''
-  let g:unite_source_grep_encoding = 'utf-8'
-
-  set grepprg=pt\ --nogroup\ --nocolor
-  let g:ctrlp_user_command = 'ag %s -l --nocolor -g ""'
-  let g:ctrlp_use_caching = 0
-else
-  " Use the_silver_searcher for searching if we don't have pt
-  if executable('ag')
-    let g:unite_source_grep_command = 'ag'
-    let g:unite_source_grep_default_opts = '--nogroup --nocolor'
-    let g:unite_source_grep_recursive_opt = ''
-    let g:unite_source_grep_encoding = 'utf-8'
-
-    " Use ag over grep
-    set grepprg=ag\ --nogroup\ --nocolor
-
-    " Use ag in CtrlP for listing files. Lightning fast and respects .gitignore
-    let g:ctrlp_user_command = 'ag %s -l --nocolor -g ""'
-
-    " ag is fast enough that CtrlP doesn't need to cache
-    let g:ctrlp_use_caching = 0
-  endif
-endif
 
 " NERDTree configurations: https://github.com/scrooloose/nerdtree
 autocmd StdinReadPre * let s:std_in=1

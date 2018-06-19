@@ -7,8 +7,6 @@ alias .....='cd ../../../..'
 #Applications
 alias vim='/usr/local/bin/vim'
 alias vi='/usr/local/bin/vim'
-alias cp='pycp -g'
-alias mv='pymv -g'
 alias ag='sift'
 alias pt='sift'
 alias google='/usr/local/bin/google -C'
@@ -21,10 +19,43 @@ alias sift='sift -n --exclude-dirs={node_modules,.tmp,bower_components,build,.bu
 alias dps='docker ps -a'
 alias dlf='docker logs -f --tail=100'
 alias dexec='docker exec -it'
-
 alias cl='clear'
 alias ps='ps aux|sift'
 alias rl='source ~/.zshrc'
+
+cp() {
+  source=$1
+  target=$2
+
+  if [ -d $1 ] && [ ${1: -1} != '/' ]; then
+    source="$1/"
+  fi
+
+  if [ -d $1 ] && [ ${2: -1} != '/' ]; then
+    target="$2/"
+  fi
+
+  rsync -avvPhztplr --progress $source $target
+}
+
+mv() {
+  source=$1
+  target=$2
+
+  if [ -d $1 ] && [ ${1: -1} != '/' ]; then
+    source="$1/"
+  fi
+
+  if [ -d $1 ] && [ ${2: -1} != '/' ]; then
+    target="$2/"
+  fi
+
+  cp --remove-source-files $source $target
+
+  if [ -e $source ]; then
+    rmdir $source
+  fi
+}
 
 #Git Commands
 alias status='git status'

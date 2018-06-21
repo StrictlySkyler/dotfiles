@@ -15,7 +15,7 @@ alias dock='docker'
 alias dc='docker-compose'
 alias dm='docker-machine'
 alias di='docker images'
-alias sift='sift -n --exclude-dirs={node_modules,.tmp,bower_components,build,.build,plugin-cache,dist,vcr,history} --exclude-ext=cache,jpg,ttf,svg,log'
+alias sift='sift -n --exclude-dirs={node_modules,.tmp,bower_components,build,.build,plugin-cache,dist,vcr,history} --exclude-ext=cache,jpg,ttf,svg,log,csv,txt'
 alias dps='docker ps -a'
 alias dlf='docker logs -f --tail=100'
 alias dexec='docker exec -it'
@@ -50,11 +50,8 @@ mv() {
     target="$2/"
   fi
 
-  cp --remove-source-files $source $target
-
-  if [ -e $source ]; then
-    rmdir $source
-  fi
+  rsync -avvPhztplr --progress $source $target
+  rm -rf $source
 }
 
 #Git Commands

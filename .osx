@@ -18,7 +18,7 @@ defaults write NSGlobalDomain NSDocumentSaveNewDocumentsToCloud -bool false
 launchctl unload -w /System/Library/LaunchAgents/com.apple.notificationcenterui.plist
 
 # Set a blazingly fast keyboard repeat rate
-defaults write NSGlobalDomain KeyRepeat -int 0
+defaults write NSGlobalDomain KeyRepeat -int 1
 
 # Disable shadow in screenshots
 defaults write com.apple.screencapture disable-shadow -bool true

@@ -1,5 +1,5 @@
 # Path to your oh-my-zsh installation.
-export ZSH=/home/skyler/.oh-my-zsh
+export ZSH=/Users/skyler/.oh-my-zsh
 
 # Set name of the theme to load.
 # Look in ~/.oh-my-zsh/themes/
@@ -47,8 +47,8 @@ COMPLETION_WAITING_DOTS="true"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-#plugins=(autojump git bower brew compleat docker git-extras git-hubflow jsontools macports npm nyan python ruby screen sudo tmux web-search wd colored-man colorize command-not-found copydir cp copyfile extract pj jump battery encoded64 mosh safe-paste screen sprunge forklift history z zsh-autosuggestions)
-plugins=(git)
+plugins=(autojump git bower brew compleat docker git-extras git-hubflow jsontools macports npm nyan python ruby screen sudo tmux web-search wd colored-man colorize command-not-found copydir cp copyfile extract pj jump battery encoded64 mosh safe-paste screen sprunge forklift history z zsh-autosuggestions)
+#plugins=(git)
 
 # User configuration
 
@@ -93,7 +93,7 @@ antigen bundle zsh-users/zsh-syntax-highlighting
 
 antigen apply
 
-export NVM_DIR="/home/skyler/.nvm"
+export NVM_DIR="/Users/skyler/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
 alias sudo='sudo env PATH=$PATH:$NVM_BIN'
 
@@ -120,7 +120,32 @@ bindkey "\e[1;5D" backward-word
 bindkey "\e^?" backward-kill-word
 bindkey "\e[3;5~" kill-word
 
-fpath=(~/.zsh/completion $fpath)
+# Fire up ssh key agent at login
+if [ ! -z "$SSH_AUTH_SOCK" ]; then
+  eval "$(ssh-agent -s)"
+  ssh-add
+fi
 
-[ -s "/home/skyler/.scm_breeze/scm_breeze.sh" ] && source "/home/skyler/.scm_breeze/scm_breeze.sh"
+fpath=(~/.zsh/completion $fpath)
+autoload -Uz compinit && compinit -i
+
+export PATH="$PATH:$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/Users/skyler/bin"
+export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
+export PATH="$PATH:$(yarn global bin)" # Adding yarn libraries, e.g. Appium, to path
+export PATH="$PATH:/Applications/Postgres.app/Contents/Versions/latest/bin"
+
+[ -s "/Users/skyler/.scm_breeze/scm_breeze.sh" ] && source "/Users/skyler/.scm_breeze/scm_breeze.sh"
 [[ -s "$HOME/.rvm/scripts/rvm"  ]] && source "$HOME/.rvm/scripts/rvm"
+
+# added by travis gem
+#[ -f /Users/skyler/.travis/travis.sh ] && source /Users/skyler/.travis/travis.sh
+
+# Log a secure shell
+#if [ -z "`who`" ]; then ssh skyler@localhost; fi
+#if [[ -z $DBUS_SESSION_BUS_ADDRESS ]]; then
+  #if [[ -f ~/.dbus/session-bus/$(dbus-uuidgen --get)-0 ]]; then
+    #source ~/.dbus/session-bus/$(dbus-uuidgen --get)-0
+    #export DBUS_SESSION_BUS_ADDRESS
+  #fi
+#fi
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion

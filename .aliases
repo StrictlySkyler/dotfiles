@@ -23,6 +23,10 @@ alias cl='clear'
 alias ps='ps aux|sift'
 alias rl='source ~/.zshrc'
 
+#Mac OS
+alias sleepoff='sudo pmset -b sleep 0; sudo pmset -b disablesleep 1'
+alias sleepon='sudo pmset -b sleep 5; sudo pmset -b disablesleep 0'
+
 cp() {
   source=$1
   target=$2

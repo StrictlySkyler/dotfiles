@@ -1,0 +1,24 @@
+{
+  "apiKey": "local",
+  "peerName": "skyler",
+  "saveMessages": true,
+  "enabled": true,
+  "logging": true,
+  "endpoint": {
+    "baseUrl": "http://orphic-lens:8100"
+  },
+  "hosts": {
+    "hermes": {
+      "workspace": "hermes",
+      "aiPeer": "hermes"
+    },
+    "cursor": {
+      "workspace": "cursor",
+      "aiPeer": "cursor"
+    },
+    "claude_code": {
+      "workspace": "claude_code",
+      "aiPeer": "claude"
+    }
+  }
+}

@@ -1,0 +1,14 @@
+---
+description: Persist session context to Honcho memory on every turn
+alwaysApply: true
+---
+
+# Honcho Memory Persistence
+
+After every user message and after every assistant response, call
+`honcho-create_conclusion` to save relevant context from the exchange.
+
+- Summarize what was discussed, decided, or accomplished.
+- Include specifics: file paths, commit hashes, PR numbers, branch names.
+- Do this consistently, not only when something "important" happens.
+- Batch the save call alongside other tool calls when possible.

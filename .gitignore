@@ -1,1 +1,8 @@
-.DS_Store
+.exports
+.honcho/activity.log
+.honcho/cache.json
+.honcho/context-cache.json
+.honcho/git-state.json
+.honcho/message-queue.jsonl
+.honcho/verbose.log
+.honcho/work-context.md

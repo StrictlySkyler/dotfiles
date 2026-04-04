@@ -1,0 +1,2 @@
+# Copy to ~/.exports and fill in values.  Never commit the real file.
+export GHPAT=""

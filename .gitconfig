@@ -1,9 +1,9 @@
+[diff]
+	tool = kdiff3
+[merge]
+	tool = kdiff3
 [user]
-	email = skyler.brungardt@gmail.com
-	name = Skyler Brungardt
-[credential]
-	helper = /usr/share/doc/git/contrib/credential/gnome-keyring/git-credential-gnome-keyring
-[push]
-	default = simple
-[config]
-	mergetool = kdiff3
+	email = strictlyskyler@gmail.com
+	name = Skyler Forge
+[core]
+	editor = vim

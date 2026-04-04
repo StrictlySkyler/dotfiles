@@ -1,96 +1,15 @@
-#Navigation
-alias ..='cd ..'
-alias ...='cd ../..'
-alias ....='cd ../../..'
-alias .....='cd ../../../..'
+alias _='sudo'
+alias astudio='sh ~/dev/android-studio/bin/studio.sh'
+alias python="/home/linuxbrew/.linuxbrew/bin/python3"
+alias vi=vim
+_AI_SERVICES="ollama open-webui honcho honcho-deriver honcho-db honcho-redis firecrawl firecrawl-playwright firecrawl-postgres firecrawl-rabbitmq firecrawl-redis harbor-cat"
+alias ai-off='ssh ssh.skyler.is "cd ~/services && podman-compose stop $_AI_SERVICES"'
+alias ai-on='ssh ssh.skyler.is "cd ~/services && podman-compose start $_AI_SERVICES"'
 
-#Applications
-alias vim='/usr/local/bin/vim'
-alias vi='/usr/local/bin/vim'
-alias ag='sift'
-alias pt='sift'
-alias google='/usr/local/bin/google -C'
-alias doc='docker'
-alias dock='docker'
-alias dc='docker-compose'
-alias dm='docker-machine'
-alias di='docker images'
-alias sift='sift -n --exclude-dirs={node_modules,.tmp,bower_components,build,.build,plugin-cache,dist,vcr,history} --exclude-ext=cache,jpg,ttf,svg,log,csv,txt'
-alias dps='docker ps -a'
-alias dlf='docker logs -f --tail=100'
-alias dexec='docker exec -it'
-alias cl='clear'
-alias ps='ps aux|sift'
-alias rl='source ~/.zshrc'
+_AI_SUPPORT="honcho honcho-deriver honcho-db honcho-redis firecrawl firecrawl-playwright firecrawl-postgres firecrawl-rabbitmq firecrawl-redis"
+alias ai-support-on='ssh ssh.skyler.is "cd ~/services && podman-compose start $_AI_SUPPORT"'
+alias ai-support-off='ssh ssh.skyler.is "cd ~/services && podman-compose stop $_AI_SUPPORT"'
 
-#Mac OS
-alias sleepoff='sudo pmset -b sleep 0; sudo pmset -b disablesleep 1'
-alias sleepon='sudo pmset -b sleep 5; sudo pmset -b disablesleep 0'
-
-cp() {
-  source=$1
-  target=$2
-
-  if [ -d $1 ] && [ ${1: -1} != '/' ]; then
-    source="$1/"
-  fi
-
-  if [ -d $1 ] && [ ${2: -1} != '/' ]; then
-    target="$2/"
-  fi
-
-  rsync -avvPhztplr --progress $source $target
-}
-
-mv() {
-  source=$1
-  target=$2
-
-  if [ -d $1 ] && [ ${1: -1} != '/' ]; then
-    source="$1/"
-  fi
-
-  if [ -d $1 ] && [ ${2: -1} != '/' ]; then
-    target="$2/"
-  fi
-
-  rsync -avvPhztplr --progress $source $target
-  rm -rf $source
-}
-
-#Git Commands
-alias status='git status'
-alias st='git status'
-alias checkout='git checkout'
-alias commit='git commit'
-alias pull='git pull'
-alias push='git push'
-alias merge='git merge'
-alias add='git add -A'
-alias pull-request='git pull-request'
-alias git=hub
-alias rebase='git rebase'
-alias remote='git remote'
-alias mergetool='git mergetool'
-alias branch='git branch'
-alias stash='git stash'
-alias pr='~/bin/./pull-request.sh'
-alias gpu='git push -u origin $(git rev-parse --abbrev-ref HEAD)'
-alias gcob='gco -b'
-alias grf='git reflow start'
-alias gpot='git push origin && git push --tags'
-alias gpotf='git push origin -f && git push --tags -f'
-alias guprb='BRANCH=`git rev-parse --abbrev-ref HEAD`; gco develop; gup; gco $BRANCH; grb develop'
-alias gupf='current=`git rev-parse --abbrev-ref HEAD` && default=`git symbolic-ref refs/remotes/origin/HEAD | sed "s@^refs/remotes/origin/@@"` && git checkout $default && git pull --rebase && git checkout $current && git rebase $default && git push origin $current -f'
-alias gpupr='gpu && pr'
-
-# Trash (https://github.com/sindresorhus/trash)
-alias remove='/bin/rm'
-alias rm='trash'
-
-# Better top: https://github.com/MrRio/vtop
-alias top='vtop'
-alias oldtop='/usr/bin/top'
-
-# Ansiweather: https://github.com/fcambus/ansiweather
-alias weather='ansiweather -u imperial'
+_HERMES_CONFIGS="$HOME/.hermes/config.yaml $HOME/.hermes/honcho.json $HOME/.hermes/.env"
+alias hermes-tunnel='sed -i "s|orphic-lens|127.0.0.1|g" $_HERMES_CONFIGS && echo "Hermes → tunnel (127.0.0.1)"'
+alias hermes-lan='sed -i "s|127\.0\.0\.1|orphic-lens|g" $_HERMES_CONFIGS && echo "Hermes → LAN (orphic-lens)"'

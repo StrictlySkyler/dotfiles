@@ -11,10 +11,8 @@ TARGETS=(
   .aliases
   .vimrc
   .gitconfig
-  .config/ghostty/config
   .cursor/rules/honcho-memory.mdc
   .honcho/config.json
-  CLAUDE.md
 )
 
 for target in "${TARGETS[@]}"; do

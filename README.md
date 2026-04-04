@@ -31,7 +31,5 @@ commented out — set it via environment or a local override.
 | `.exports.example` | template for secret env vars |
 | `.vimrc` | vim-plug, NERDTree, solarized, 2-space tabs |
 | `.gitconfig` | user identity, kdiff3 diff/merge |
-| `.config/ghostty/config` | Ghostty terminal theme + opacity |
 | `.cursor/rules/` | Cursor IDE agent rules |
 | `.honcho/config.json` | Honcho AI memory service config |
-| `CLAUDE.md` | Claude Code project guidance |

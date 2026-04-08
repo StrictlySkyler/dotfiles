@@ -1,4 +1,5 @@
 .exports
+.honcho/mcp/node_modules/
 .honcho/activity.log
 .honcho/cache.json
 .honcho/context-cache.json

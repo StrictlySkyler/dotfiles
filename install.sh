@@ -13,6 +13,8 @@ TARGETS=(
   .gitconfig
   .cursor/rules/honcho-memory.mdc
   .honcho/config.json
+  .honcho/mcp/server.mjs
+  .honcho/mcp/package.json
 )
 
 for target in "${TARGETS[@]}"; do
@@ -45,6 +47,13 @@ done
 if [[ ! -f "$HOME/.exports" ]]; then
   cp "$DOTFILES_DIR/.exports.example" "$HOME/.exports"
   echo "COPY  .exports (from template — fill in secrets)"
+fi
+
+if [[ -f "$HOME/.honcho/mcp/package.json" ]]; then
+  echo ""
+  echo "Installing Honcho MCP bridge dependencies..."
+  (cd "$HOME/.honcho/mcp" && npm install --silent)
+  echo "OK    .honcho/mcp/node_modules"
 fi
 
 echo ""

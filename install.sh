@@ -13,7 +13,6 @@ TARGETS=(
   .vimrc
   .gitconfig
   .local/bin/honcho-prewarm-cursor.sh
-  .local/bin/agent-wrapper
   .cursor/rules/honcho-memory.mdc
   .cursor/settings.json
   .honcho/config.json
@@ -66,44 +65,6 @@ if [[ -f "$DOTFILES_DIR/.local/bin/honcho-prewarm-cursor.sh" ]]; then
     chmod +x "$HOME/.local/bin/honcho-prewarm-cursor.sh"
   fi
 fi
-
-# ── 1b. Cursor Agent alt-screen wrapper ─────────────────────────────
-# The cursor-agent updater replaces ~/.local/bin/agent with a symlink.
-# We replace it with our wrapper that adds alternate screen buffer support
-# for ConEmu compatibility. Re-run install.sh after agent updates.
-
-install_agent_wrapper() {
-  local wrapper="$DOTFILES_DIR/.local/bin/agent-wrapper"
-  local dest="$HOME/.local/bin/agent"
-
-  if [[ ! -f "$wrapper" ]]; then
-    echo "SKIP  agent-wrapper (not in dotfiles)"
-    return
-  fi
-
-  if [[ ! -d "$HOME/.local/share/cursor-agent" ]]; then
-    echo "SKIP  agent-wrapper (cursor-agent not installed)"
-    return
-  fi
-
-  if [[ -L "$dest" ]]; then
-    rm "$dest"
-    echo "REPL  agent (was symlink → wrapper)"
-  elif [[ -f "$dest" ]]; then
-    if diff -q "$wrapper" "$dest" &>/dev/null; then
-      echo "OK    agent-wrapper"
-      return
-    fi
-    mv "$dest" "$dest.bak"
-    echo "BAK   agent → $dest.bak"
-  fi
-
-  cp "$wrapper" "$dest"
-  chmod +x "$dest"
-  echo "INST  agent-wrapper → $dest"
-}
-
-install_agent_wrapper
 
 # ── 2. cursor-honcho plugin (MCP server + hooks) ───────────────────
 

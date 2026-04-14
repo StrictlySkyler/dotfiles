@@ -14,6 +14,27 @@ alias honcho-up='ssh -f -N -o ServerAliveInterval=60 -L 8100:localhost:8100 ssh.
 alias honcho-down='pkill -f "ssh.*-L 8100:localhost:8100" && echo "Honcho tunnel down"'
 alias honcho-status='pgrep -f "ssh.*-L 8100:localhost:8100" > /dev/null && echo "Honcho tunnel: UP (pid $(pgrep -f "ssh.*-L 8100:localhost:8100"))" || echo "Honcho tunnel: DOWN"'
 
+# Wrap cursor-agent with alternate screen buffer for ConEmu compatibility.
+# Survives agent auto-updates since it shadows the PATH binary.
+agent() {
+  local real
+  real="$(ls -t ~/.local/share/cursor-agent/versions/*/cursor-agent 2>/dev/null | head -1)"
+  if [[ -z "$real" ]]; then
+    echo "cursor-agent not found" >&2
+    return 1
+  fi
+  case "${1:-}" in
+    --print|-p|record|update) "$real" "$@"; return ;;
+  esac
+  trap 'printf "\e[?1049l"; stty sane 2>/dev/null' INT TERM
+  printf '\e[?1049h\e[2J\e[H'
+  "$real" "$@"
+  local ret=$?
+  printf '\e[?1049l'
+  trap - INT TERM
+  return $ret
+}
+
 _HERMES_CONFIGS="$HOME/.hermes/config.yaml $HOME/.hermes/honcho.json $HOME/.hermes/.env"
 alias hermes-tunnel='sed -i "s|orphic-lens|127.0.0.1|g" $_HERMES_CONFIGS && echo "Hermes → tunnel (127.0.0.1)"'
 alias hermes-lan='sed -i "s|127\.0\.0\.1|orphic-lens|g" $_HERMES_CONFIGS && echo "Hermes → LAN (orphic-lens)"'

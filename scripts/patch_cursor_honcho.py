@@ -1,4 +1,15 @@
 #!/usr/bin/env python3
+"""
+Apply local patches to cursor-honcho after git clone/pull.
+
+Patches:
+  config.ts        - baseUrl → baseURL typo fix
+  cache.ts         - Dialectic result caching helpers
+  server.ts        - Timeout from env, progress notifications,
+                     45s race/cache chat handler, warmup ping
+  before-submit-prompt.ts - baseURL fix, peer.context API
+  session-start.ts - baseURL fix, reasoningLevel param
+"""
 from __future__ import annotations
 
 import sys
@@ -30,6 +41,7 @@ def main() -> int:
 
     changed = []
 
+    # ── config.ts: baseUrl → baseURL ────────────────────────────────
     config_ts = plugin_root / "src/config.ts"
     if replace_one_of(
         config_ts,
@@ -51,7 +63,78 @@ def main() -> int:
     ):
         changed.append(config_ts)
 
+    # ── cache.ts: dialectic result caching ──────────────────────────
+    cache_ts = plugin_root / "src/cache.ts"
+
+    if replace_one_of(
+        cache_ts,
+        [
+            "interface ContextCache {\n  userContext?: { data: any; fetchedAt: number };\n  aiContext?: { data: any; fetchedAt: number };\n  summaries?: { data: any; fetchedAt: number };\n  messageCount?: number; // Track messages since last refresh\n  lastRefreshMessageCount?: number; // Message count at last knowledge graph refresh\n}\n",
+        ],
+        "interface DialecticEntry {\n  query: string;\n  response: string;\n  fetchedAt: number;\n}\n\ninterface ContextCache {\n  userContext?: { data: any; fetchedAt: number };\n  aiContext?: { data: any; fetchedAt: number };\n  summaries?: { data: any; fetchedAt: number };\n  dialectic?: DialecticEntry[];\n  messageCount?: number;\n  lastRefreshMessageCount?: number;\n}\n",
+    ):
+        changed.append(cache_ts)
+
+    DIALECTIC_BLOCK = (
+        "const MAX_DIALECTIC_ENTRIES = 10;\n\n"
+        "export function getCachedDialectic(): DialecticEntry[] {\n"
+        "  const cache = loadContextCache();\n"
+        "  return cache.dialectic ?? [];\n"
+        "}\n\n"
+        "export function getLatestDialectic(): DialecticEntry | null {\n"
+        "  const entries = getCachedDialectic();\n"
+        "  if (entries.length === 0) return null;\n"
+        "  const ttl = getContextTTL();\n"
+        "  const latest = entries[entries.length - 1];\n"
+        "  if (Date.now() - latest.fetchedAt < ttl) return latest;\n"
+        "  return null;\n"
+        "}\n\n"
+        "export function getStaleDialectic(): DialecticEntry | null {\n"
+        "  const entries = getCachedDialectic();\n"
+        "  return entries.length > 0 ? entries[entries.length - 1] : null;\n"
+        "}\n\n"
+        "export function pushDialecticResult(query: string, response: string): void {\n"
+        "  const cache = loadContextCache();\n"
+        "  const entries = cache.dialectic ?? [];\n"
+        "  entries.push({ query, response, fetchedAt: Date.now() });\n"
+        "  if (entries.length > MAX_DIALECTIC_ENTRIES) entries.splice(0, entries.length - MAX_DIALECTIC_ENTRIES);\n"
+        "  cache.dialectic = entries;\n"
+        "  saveContextCache(cache);\n"
+        "}\n\n"
+    )
+    if replace_one_of(
+        cache_ts,
+        [
+            "  saveContextCache(cache);\n}\n\nexport function isContextCacheStale(): boolean {\n",
+        ],
+        "  saveContextCache(cache);\n}\n\n" + DIALECTIC_BLOCK + "export function isContextCacheStale(): boolean {\n",
+    ):
+        changed.append(cache_ts)
+
+    # ── server.ts ───────────────────────────────────────────────────
     mcp_server_ts = plugin_root / "src/mcp/server.ts"
+
+    # Imports: ProgressNotification + RequestHandlerExtra
+    if replace_one_of(
+        mcp_server_ts,
+        [
+            """import {\n  CallToolRequestSchema,\n  ListToolsRequestSchema,\n} from "@modelcontextprotocol/sdk/types.js";\n""",
+        ],
+        """import {\n  CallToolRequestSchema,\n  ListToolsRequestSchema,\n  ProgressNotification,\n} from "@modelcontextprotocol/sdk/types.js";\nimport type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";\n""",
+    ):
+        changed.append(mcp_server_ts)
+
+    # Imports: cache helpers (getStaleDialectic, pushDialecticResult)
+    if replace_one_of(
+        mcp_server_ts,
+        [
+            """  clearAIContextOnly,\n} from "../cache.js";\n""",
+        ],
+        """  clearAIContextOnly,\n  getStaleDialectic,\n  pushDialecticResult,\n} from "../cache.js";\n""",
+    ):
+        changed.append(mcp_server_ts)
+
+    # Honcho client: timeout from env var
     if replace_one_of(
         mcp_server_ts,
         [
@@ -62,17 +145,7 @@ def main() -> int:
     ):
         changed.append(mcp_server_ts)
 
-    # Add imports for progress notifications
-    if replace_one_of(
-        mcp_server_ts,
-        [
-            """import {\n  CallToolRequestSchema,\n  ListToolsRequestSchema,\n} from "@modelcontextprotocol/sdk/types.js";\n""",
-        ],
-        """import {\n  CallToolRequestSchema,\n  ListToolsRequestSchema,\n  ProgressNotification,\n} from "@modelcontextprotocol/sdk/types.js";\nimport type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";\n""",
-    ):
-        changed.append(mcp_server_ts)
-
-    # Add extra param and progressToken extraction to handler
+    # Handler signature: (request) → (request, extra) + progressToken
     if replace_one_of(
         mcp_server_ts,
         [
@@ -82,25 +155,115 @@ def main() -> int:
     ):
         changed.append(mcp_server_ts)
 
-    # Replace chat handler with progress notification version
-    if replace_one_of(
-        mcp_server_ts,
-        [
-            """        case "chat": {\n          const query = args?.query as string;\n          const userPeer = await honcho.peer(config.peerName);\n          const response = await userPeer.chat(query, {\n            session,\n            reasoningLevel: "medium",\n          });\n          return {\n            content: [{ type: "text", text: response ?? "No response from Honcho" }],\n          };\n        }\n""",
-        ],
-        """        case "chat": {\n          const query = args?.query as string;\n          const userPeer = await honcho.peer(config.peerName);\n\n          // Send progress notifications every 10s to keep connection alive.\n          // Ollama may need up to 120s on cold start to load the model.\n          let progressCount = 0;\n          const progressInterval = setInterval(async () => {\n            progressCount++;\n            if (progressToken) {\n              await extra.sendNotification({\n                method: "notifications/progress",\n                params: {\n                  progressToken,\n                  progress: progressCount,\n                  message: "Waiting for dialectic response (model may be loading)...",\n                },\n              } as ProgressNotification).catch(() => {});\n            }\n          }, 10_000);\n\n          try {\n            const response = await userPeer.chat(query, {\n              session,\n              reasoningLevel: "medium",\n            });\n            return {\n              content: [{ type: "text", text: response ?? "No response from Honcho" }],\n            };\n          } finally {\n            clearInterval(progressInterval);\n          }\n        }\n""",
-    ):
-        changed.append(mcp_server_ts)
+    # Chat handler: replace simple version with 45s race + cache fallback
+    UPSTREAM_CHAT = """        case "chat": {\n          const query = args?.query as string;\n          const userPeer = await honcho.peer(config.peerName);\n          const response = await userPeer.chat(query, {\n            session,\n            reasoningLevel: "medium",\n          });\n          return {\n            content: [{ type: "text", text: response ?? "No response from Honcho" }],\n          };\n        }\n"""
+
+    # Also handle the intermediate patched version (progress only, no race)
+    PROGRESS_ONLY_CHAT = """        case "chat": {\n          const query = args?.query as string;\n          const userPeer = await honcho.peer(config.peerName);\n\n          // Send progress notifications every 10s to keep connection alive.\n          // Ollama may need up to 120s on cold start to load the model.\n          let progressCount = 0;\n          const progressInterval = setInterval(async () => {\n            progressCount++;\n            if (progressToken) {\n              await extra.sendNotification({\n                method: "notifications/progress",\n                params: {\n                  progressToken,\n                  progress: progressCount,\n                  message: "Waiting for dialectic response (model may be loading)...",\n                },\n              } as ProgressNotification).catch(() => {});\n            }\n          }, 10_000);\n\n          try {\n            const response = await userPeer.chat(query, {\n              session,\n              reasoningLevel: (args?.reasoningLevel as string) ?? "minimal",\n            });\n            return {\n              content: [{ type: "text", text: response ?? "No response from Honcho" }],\n            };\n          } finally {\n            clearInterval(progressInterval);\n          }\n        }\n"""
+
+    RACE_CACHE_CHAT = (
+        '        case "chat": {\n'
+        "          const query = args?.query as string;\n"
+        "          const userPeer = await honcho.peer(config.peerName);\n"
+        "          const RACE_TIMEOUT_MS = 45_000;\n"
+        "\n"
+        "          let progressCount = 0;\n"
+        "          const progressInterval = setInterval(async () => {\n"
+        "            progressCount++;\n"
+        "            if (progressToken) {\n"
+        "              await extra.sendNotification({\n"
+        '                method: "notifications/progress",\n'
+        "                params: {\n"
+        "                  progressToken,\n"
+        "                  progress: progressCount,\n"
+        '                  message: "Waiting for dialectic response (model may be loading)...",\n'
+        "                },\n"
+        "              } as ProgressNotification).catch(() => {});\n"
+        "            }\n"
+        "          }, 10_000);\n"
+        "\n"
+        "          try {\n"
+        "            const liveCall = userPeer.chat(query, {\n"
+        "              session,\n"
+        '              reasoningLevel: (args?.reasoningLevel as string) ?? "minimal",\n'
+        "            });\n"
+        "\n"
+        "            const timer = new Promise<null>(resolve =>\n"
+        "              setTimeout(() => resolve(null), RACE_TIMEOUT_MS)\n"
+        "            );\n"
+        "\n"
+        "            const response = await Promise.race([liveCall, timer]);\n"
+        "\n"
+        "            if (response !== null) {\n"
+        "              pushDialecticResult(query, response);\n"
+        "              return {\n"
+        "                content: [{ type: \"text\", text: response }],\n"
+        "              };\n"
+        "            }\n"
+        "\n"
+        "            // Live call didn't finish in time — return cached result.\n"
+        "            // The live call continues in the background and caches when done.\n"
+        "            liveCall.then(r => { if (r) pushDialecticResult(query, r); }).catch(() => {});\n"
+        "\n"
+        "            const cached = getStaleDialectic();\n"
+        "            if (cached) {\n"
+        "              return {\n"
+        "                content: [{\n"
+        '                  type: "text",\n'
+        "                  text: `${cached.response}\\n\\n---\\n_Cached from ${new Date(cached.fetchedAt).toISOString()} (live query still processing in background). Original query: \"${cached.query}\"_`,\n"
+        "                }],\n"
+        "              };\n"
+        "            }\n"
+        "\n"
+        "            return {\n"
+        "              content: [{\n"
+        '                type: "text",\n'
+        '                text: "Dialectic response is still loading (Ollama model warming up). The result will be cached for subsequent calls. Please retry in ~30 seconds.",\n'
+        "              }],\n"
+        "            };\n"
+        "          } finally {\n"
+        "            clearInterval(progressInterval);\n"
+        "          }\n"
+        "        }\n"
+    )
 
     if replace_one_of(
         mcp_server_ts,
-        [
-            """            reasoningLevel: "medium",\n""",
-        ],
-        """            reasoningLevel: (args?.reasoningLevel as string) ?? "minimal",\n""",
+        [UPSTREAM_CHAT, PROGRESS_ONLY_CHAT],
+        RACE_CACHE_CHAT,
     ):
         changed.append(mcp_server_ts)
 
+    # Warmup ping after server.connect()
+    WARMUP_BLOCK = (
+        "\n"
+        "  // Pre-warm Ollama model on startup so the first real chat call is faster.\n"
+        "  // Cursor CLI has a ~60s hard MCP timeout; dialectic on the local 4B model\n"
+        "  // takes 50-70s. The chat handler races live calls against 45s and falls\n"
+        "  // back to cached results, but a warm model helps hit the 45s window.\n"
+        "  if (honcho && config) {\n"
+        "    (async () => {\n"
+        "      try {\n"
+        "        const cwd = process.env.CURSOR_PROJECT_DIR || getLastActiveCwd() || process.cwd();\n"
+        "        const session = await honcho.session(getSessionName(cwd));\n"
+        "        const userPeer = await honcho.peer(config.peerName);\n"
+        '        const response = await userPeer.chat("ping", { session, reasoningLevel: "minimal" });\n'
+        '        if (response) pushDialecticResult("warmup", response);\n'
+        "      } catch {\n"
+        "        // Non-critical\n"
+        "      }\n"
+        "    })();\n"
+        "  }\n"
+    )
+
+    if patch_after(
+        mcp_server_ts,
+        "  await server.connect(transport);\n",
+        WARMUP_BLOCK,
+    ):
+        changed.append(mcp_server_ts)
+
+    # ── before-submit-prompt.ts ─────────────────────────────────────
     before_submit_ts = plugin_root / "src/hooks/before-submit-prompt.ts"
     if replace_one_of(
         before_submit_ts,
@@ -138,6 +301,7 @@ def main() -> int:
     ):
         changed.append(before_submit_ts)
 
+    # ── session-start.ts ────────────────────────────────────────────
     session_start_ts = plugin_root / "src/hooks/session-start.ts"
     if replace_one_of(
         session_start_ts,
@@ -148,6 +312,16 @@ def main() -> int:
     ):
         changed.append(session_start_ts)
 
+    # Import pushDialecticResult in session-start
+    if replace_one_of(
+        session_start_ts,
+        [
+            """  detectGitChanges,\n} from "../cache.js";\n""",
+        ],
+        """  detectGitChanges,\n  pushDialecticResult,\n} from "../cache.js";\n""",
+    ):
+        changed.append(session_start_ts)
+
     if replace_one_of(
         session_start_ts,
         [
@@ -163,6 +337,25 @@ def main() -> int:
             """          { session }\n        ),\n""",
         ],
         """          { session, reasoningLevel: "minimal" }\n        ),\n""",
+    ):
+        changed.append(session_start_ts)
+
+    # Cache dialectic results from session-start context fetches
+    if replace_one_of(
+        session_start_ts,
+        [
+            """      contextParts.push(`## AI Summary of ${config.peerName}\\n${userChatContent}`);\n    }\n""",
+        ],
+        """      contextParts.push(`## AI Summary of ${config.peerName}\\n${userChatContent}`);\n      pushDialecticResult(`Summarize what you know about ${config.peerName}`, userChatContent);\n    }\n""",
+    ):
+        changed.append(session_start_ts)
+
+    if replace_one_of(
+        session_start_ts,
+        [
+            """      contextParts.push(`## AI Self-Reflection (What ${config.aiPeer} Has Been Doing)\\n${cursorChatContent}`);\n    }\n""",
+        ],
+        """      contextParts.push(`## AI Self-Reflection (What ${config.aiPeer} Has Been Doing)\\n${cursorChatContent}`);\n      pushDialecticResult(`What has ${config.aiPeer} been working on recently?`, cursorChatContent);\n    }\n""",
     ):
         changed.append(session_start_ts)
 

@@ -17,8 +17,14 @@
       "aiPeer": "cursor"
     },
     "claude_code": {
-      "workspace": "claude_code",
+      "workspace": "cursor",
       "aiPeer": "claude"
     }
+  },
+  "sessions": {
+    "/home/skyler": "skyler-skyler",
+    "/mnt/e/src/cinf": "skyler-cinf",
+    "/home/skyler/src/cinf": "skyler-cinf",
+    "/home/skyler/src/cinf-1": "skyler-cinf-1"
   }
 }

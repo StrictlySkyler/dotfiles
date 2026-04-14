@@ -1,0 +1,4 @@
+{
+  "mcp.server.timeout": 600000,
+  "mcp.elicitation.timeout": 600000
+}

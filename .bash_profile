@@ -10,7 +10,9 @@ if [[ -f ~/.bashrc ]]; then
 source ~/.bashrc
 fi
 
-. "$HOME/.local/bin/env"
+if [[ -f "$HOME/.local/bin/env" ]]; then
+  . "$HOME/.local/bin/env"
+fi
 export PATH=/home/skyler/.meteor:$PATH
 
 

@@ -265,6 +265,11 @@ write_cursor_hooks_json
 ensure_orphic_lens_dns
 bootstrap_honcho_server
 
+# ── 3. ConEmu terminal settings ────────────────────────────────────
+if [[ -f "$DOTFILES_DIR/scripts/configure_conemu.sh" ]] && [[ -d /mnt/c ]]; then
+  bash "$DOTFILES_DIR/scripts/configure_conemu.sh"
+fi
+
 echo ""
 echo "Done.  Review any .bak files and remove once verified."
 echo "Restart Cursor to pick up MCP + hooks."

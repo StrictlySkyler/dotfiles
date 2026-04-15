@@ -150,9 +150,8 @@ data.setdefault("mcpServers", {})["honcho"] = {
     "args": ["run", server],
     "env": {
         "HONCHO_API_KEY": "local",
-        "HONCHO_ENDPOINT": "http://orphic-lens:8100",
         "HONCHO_PEER_NAME": "skyler",
-        "HONCHO_TIMEOUT_MS": "300000",
+        "HONCHO_TIMEOUT_MS": "90000",
     },
 }
 dest.write_text(json.dumps(data, indent=2) + "\n")

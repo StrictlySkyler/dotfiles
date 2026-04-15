@@ -288,7 +288,11 @@ export PATH="/home/skyler/fvm/bin:$PATH"
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
-# Honcho (self-hosted on orphic-lens)
-export HONCHO_ENDPOINT="http://orphic-lens:8100"
+# Honcho (self-hosted on orphic-lens) — use LAN direct if reachable, else tunnel
+if curl -s --connect-timeout 1 http://orphic-lens:8100/ >/dev/null 2>&1; then
+  export HONCHO_ENDPOINT="http://orphic-lens:8100"
+else
+  export HONCHO_ENDPOINT="http://localhost:8100"
+fi
 export HONCHO_API_KEY="local"
 export HONCHO_PEER_NAME="skyler"

@@ -8,7 +8,8 @@ set -euo pipefail
 #   FixFarBorders   = OFF  (let font render box-drawing chars, not GDI)
 #   EnhanceGraphics = OFF  (stop replacing Unicode with ConEmu graphics)
 #   chcp 65001             (UTF-8 console code page in EnvironmentSet)
-#   WSL task command       (no Connector/p flag - use ConPTY)
+#   ConPTY flag (p)        (explicit ConPTY for WSL tasks - prevents
+#                           double-processing of VT scroll regions)
 #
 # Override the XML path with CONEMU_XML=/path/to/ConEmu.xml if needed.
 
@@ -79,10 +80,21 @@ text = text.replace(
     'name="EnhanceGraphics" type="hex" data="01"',
     'name="EnhanceGraphics" type="hex" data="00"',
 )
-text = text.replace(
-    'wsl.exe -cur_console:pm:/mnt',
-    'wsl.exe -cur_console:m:/mnt',
-)
+# Ensure WSL -cur_console and -new_console flags include ConPTY (p).
+# Process line-by-line: only touch lines containing "wsl" to avoid
+# modifying cmd.exe / powershell console directives.
+def _add_p(m):
+    prefix, flags = m.group(1), m.group(2)
+    if 'p' not in flags:
+        flags = 'p' + flags
+    return prefix + flags
+
+def _ensure_conpty(line):
+    if 'wsl' not in line.lower():
+        return line
+    return re.sub(r'(-(?:cur_console|new_console):)([a-zA-Z]*)', _add_p, line)
+
+text = '\n'.join(_ensure_conpty(l) for l in text.split('\n'))
 
 if 'chcp 65001' not in text:
     env_header = '<value name="EnvironmentSet" type="multi">'

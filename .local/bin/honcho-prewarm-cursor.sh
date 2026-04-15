@@ -34,7 +34,7 @@ fi
 
 touch "$stamp"
 
-HONCHO_WARMUP_CWD="$cwd" HONCHO_TIMEOUT_MS="${HONCHO_TIMEOUT_MS:-300000}" nohup "$BUN_BIN" --cwd "$PLUGIN_ROOT" -e '
+HONCHO_WARMUP_CWD="$cwd" HONCHO_TIMEOUT_MS="${HONCHO_TIMEOUT_MS:-90000}" nohup "$BUN_BIN" --cwd "$PLUGIN_ROOT" -e '
 import { Honcho } from "@honcho-ai/sdk";
 import { loadConfig, getHonchoClientOptions, getSessionName } from "./src/config.ts";
 
@@ -42,7 +42,7 @@ const cwd = process.env.HONCHO_WARMUP_CWD;
 const config = loadConfig();
 if (!config || !cwd) process.exit(0);
 
-const timeout = Number(process.env.HONCHO_TIMEOUT_MS || "300000");
+const timeout = Number(process.env.HONCHO_TIMEOUT_MS || "90000");
 const honcho = new Honcho({ ...getHonchoClientOptions(config), timeout });
 const sessionName = getSessionName(cwd);
 

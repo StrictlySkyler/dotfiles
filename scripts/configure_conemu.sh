@@ -7,6 +7,7 @@ set -euo pipefail
 # Settings applied:
 #   FixFarBorders   = OFF  (let font render box-drawing chars, not GDI)
 #   EnhanceGraphics = OFF  (stop replacing Unicode with ConEmu graphics)
+#   ProcessAnsi     = OFF  (ConPTY handles ANSI; double-processing garbles scrolling)
 #   chcp 65001             (UTF-8 console code page in EnvironmentSet)
 #   ConPTY flag (p)        (explicit ConPTY for WSL tasks - prevents
 #                           double-processing of VT scroll regions)
@@ -72,29 +73,36 @@ path = Path(sys.argv[1])
 text = path.read_text()
 original = text
 
-text = text.replace(
-    'name="FixFarBorders" type="hex" data="01"',
-    'name="FixFarBorders" type="hex" data="00"',
-)
-text = text.replace(
-    'name="EnhanceGraphics" type="hex" data="01"',
-    'name="EnhanceGraphics" type="hex" data="00"',
-)
-# Ensure WSL -cur_console and -new_console flags include ConPTY (p).
-# Process line-by-line: only touch lines containing "wsl" to avoid
-# modifying cmd.exe / powershell console directives.
-def _add_p(m):
-    prefix, flags = m.group(1), m.group(2)
-    if 'p' not in flags:
-        flags = 'p' + flags
-    return prefix + flags
+for old_val, new_val in [
+    ('name="FixFarBorders" type="hex" data="01"',
+     'name="FixFarBorders" type="hex" data="00"'),
+    ('name="EnhanceGraphics" type="hex" data="01"',
+     'name="EnhanceGraphics" type="hex" data="00"'),
+    ('name="ProcessAnsi" type="hex" data="01"',
+     'name="ProcessAnsi" type="hex" data="00"'),
+]:
+    text = text.replace(old_val, new_val)
 
-def _ensure_conpty(line):
+# Ensure WSL -cur_console and -new_console flags include ConPTY (p).
+# Only touch lines containing "wsl" to avoid modifying cmd.exe directives.
+# Also fix split directives like "-cur_console:p -cur_console:d:" into
+# a single combined "-cur_console:pd:" (ConEmu expects one directive).
+def _fix_wsl_line(line):
     if 'wsl' not in line.lower():
         return line
+    # Merge split directives: -cur_console:p -cur_console:XY -> -cur_console:pXY
+    line = re.sub(
+        r'-(?:cur_console|new_console):p\s+-(?:cur_console|new_console):([a-zA-Z])',
+        lambda m: '-cur_console:p' + m.group(1),
+        line,
+    )
+    # Add p flag if missing from any -cur_console/-new_console directive
+    def _add_p(m):
+        prefix, flags = m.group(1), m.group(2)
+        return prefix + flags if 'p' in flags else prefix + 'p' + flags
     return re.sub(r'(-(?:cur_console|new_console):)([a-zA-Z]*)', _add_p, line)
 
-text = '\n'.join(_ensure_conpty(l) for l in text.split('\n'))
+text = '\n'.join(_fix_wsl_line(l) for l in text.split('\n'))
 
 if 'chcp 65001' not in text:
     env_header = '<value name="EnvironmentSet" type="multi">'

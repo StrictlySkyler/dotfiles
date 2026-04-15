@@ -29,6 +29,18 @@ def replace_one_of(path: Path, variants: list[str], new: str) -> bool:
     raise RuntimeError(f"expected snippet not found in {path}")
 
 
+def patch_after(path: Path, anchor: str, new: str) -> bool:
+    text = path.read_text()
+    if new in text:
+        return False
+
+    if anchor not in text:
+        raise RuntimeError(f"expected anchor not found in {path}")
+
+    path.write_text(text.replace(anchor, anchor + new, 1))
+    return True
+
+
 def main() -> int:
     if len(sys.argv) != 2:
         print("usage: patch_cursor_honcho.py <plugin-root>", file=sys.stderr)
@@ -322,22 +334,13 @@ def main() -> int:
     ):
         changed.append(session_start_ts)
 
-    if replace_one_of(
-        session_start_ts,
-        [
-            """          { session }\n        ),\n""",
-        ],
-        """          { session, reasoningLevel: "minimal" }\n        ),\n""",
-    ):
-        changed.append(session_start_ts)
-
-    if replace_one_of(
-        session_start_ts,
-        [
-            """          { session }\n        ),\n""",
-        ],
-        """          { session, reasoningLevel: "minimal" }\n        ),\n""",
-    ):
+    # Replace all occurrences of `{ session }` → `{ session, reasoningLevel: "minimal" }`
+    # in session-start.ts (there are two call sites; do it in one pass).
+    _anchor = """          { session }\n        ),\n"""
+    _patched = """          { session, reasoningLevel: "minimal" }\n        ),\n"""
+    _text = session_start_ts.read_text()
+    if _anchor in _text:
+        session_start_ts.write_text(_text.replace(_anchor, _patched))
         changed.append(session_start_ts)
 
     # Cache dialectic results from session-start context fetches

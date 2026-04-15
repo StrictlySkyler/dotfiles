@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# ConEmu-safe wrapper for cursor-agent.
+# Runs the real binary inside an alternate screen buffer when attached to a TTY,
+# so the agent UI doesn't bleed into the host scrollback.
+set -uo pipefail
+
+real="$(ls -t "$HOME"/.local/share/cursor-agent/versions/*/cursor-agent 2>/dev/null | head -1 || true)"
+if [[ -z "$real" || ! -x "$real" ]]; then
+  echo "cursor-agent not found" >&2
+  exit 1
+fi
+
+# Pass through subcommands that don't use the TUI
+case "${1:-}" in
+  --print|-p|record|update) exec "$real" "$@" ;;
+esac
+
+# Only use alternate screen when we're actually in an interactive terminal
+if [[ ! -t 0 || ! -t 1 ]]; then
+  exec "$real" "$@"
+fi
+
+[[ -z "${TERM:-}" || "${TERM:-}" == dumb ]] && export TERM=xterm-256color
+
+printf '\e[?1049h\e[2J\e[H'
+trap 'printf "\e[?1049l"; stty sane 2>/dev/null || true' EXIT INT TERM HUP
+
+"$real" "$@"

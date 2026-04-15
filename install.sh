@@ -3,15 +3,37 @@ set -euo pipefail
 
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Detect platform: macos | linux | wsl
+platform() {
+  case "$(uname -s)" in
+    Darwin) echo macos ;;
+    Linux)
+      [[ -f /proc/version ]] && grep -qi microsoft /proc/version && echo wsl || echo linux ;;
+    *) echo linux ;;
+  esac
+}
+PLATFORM="$(platform)"
+
+# Portable readlink -f (macOS lacks it)
+realpath_() {
+  if command -v realpath >/dev/null 2>&1; then
+    realpath "$1"
+  elif command -v python3 >/dev/null 2>&1; then
+    python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$1"
+  else
+    readlink -f "$1"
+  fi
+}
+
 # ── 1. Symlink dotfiles into $HOME ──────────────────────────────────
 
+# Common targets for all platforms
 TARGETS=(
-  .bashrc
-  .bash_profile
-  .profile
   .aliases
   .vimrc
   .gitconfig
+  .local/bin/agent
+  .local/bin/cursor-agent
   .local/bin/honcho-prewarm-cursor.sh
   .cursor/rules/honcho-memory.mdc
   .cursor/settings.json
@@ -19,6 +41,15 @@ TARGETS=(
   .honcho/mcp/server.mjs
   .honcho/mcp/package.json
 )
+
+# Shell init files only on Linux/WSL (macOS uses zsh; manage separately)
+if [[ "$PLATFORM" != macos ]]; then
+  TARGETS+=(
+    .bashrc
+    .bash_profile
+    .profile
+  )
+fi
 
 for target in "${TARGETS[@]}"; do
   src="$DOTFILES_DIR/$target"
@@ -32,7 +63,7 @@ for target in "${TARGETS[@]}"; do
   mkdir -p "$(dirname "$dest")"
 
   if [[ -L "$dest" ]]; then
-    existing="$(readlink -f "$dest")"
+    existing="$(realpath_ "$dest" 2>/dev/null || true)"
     if [[ "$existing" == "$src" ]]; then
       echo "OK    $target"
       continue
@@ -44,10 +75,12 @@ for target in "${TARGETS[@]}"; do
   fi
 
   ln -s "$src" "$dest"
+  # Ensure scripts in .local/bin are executable via the source file
+  case "$target" in .local/bin/*) chmod +x "$src" ;; esac
   echo "LINK  $target"
 done
 
-if [[ ! -f "$HOME/.exports" ]]; then
+if [[ ! -f "$HOME/.exports" ]] && [[ -f "$DOTFILES_DIR/.exports.example" ]]; then
   cp "$DOTFILES_DIR/.exports.example" "$HOME/.exports"
   echo "COPY  .exports (from template — fill in secrets)"
 fi
@@ -57,13 +90,6 @@ if [[ -f "$HOME/.honcho/mcp/package.json" ]]; then
   echo "Installing Honcho MCP bridge dependencies..."
   (cd "$HOME/.honcho/mcp" && npm install --silent)
   echo "OK    .honcho/mcp/node_modules"
-fi
-
-if [[ -f "$DOTFILES_DIR/.local/bin/honcho-prewarm-cursor.sh" ]]; then
-  chmod +x "$DOTFILES_DIR/.local/bin/honcho-prewarm-cursor.sh"
-  if [[ -e "$HOME/.local/bin/honcho-prewarm-cursor.sh" ]]; then
-    chmod +x "$HOME/.local/bin/honcho-prewarm-cursor.sh"
-  fi
 fi
 
 # ── 2. cursor-honcho plugin (MCP server + hooks) ───────────────────
@@ -112,31 +138,34 @@ write_cursor_mcp_json() {
   bun_path="$(command -v bun)"
   mkdir -p "$HOME/.cursor"
 
-  cat > "$dest" <<EOF
-{
-  "mcpServers": {
-    "honcho": {
-      "command": "$bun_path",
-      "args": ["run", "$PLUGIN_ROOT/mcp-server.ts"],
-      "env": {
+  # Merge: preserve any existing servers, then upsert honcho entry.
+  python3 - "$dest" "$bun_path" "$PLUGIN_ROOT/mcp-server.ts" <<'PY'
+import json, sys
+from pathlib import Path
+
+dest, bun, server = Path(sys.argv[1]), sys.argv[2], sys.argv[3]
+data = json.loads(dest.read_text()) if dest.exists() else {}
+data.setdefault("mcpServers", {})["honcho"] = {
+    "command": bun,
+    "args": ["run", server],
+    "env": {
         "HONCHO_API_KEY": "local",
         "HONCHO_ENDPOINT": "http://orphic-lens:8100",
         "HONCHO_PEER_NAME": "skyler",
-        "HONCHO_TIMEOUT_MS": "300000"
-      }
-    }
-  }
+        "HONCHO_TIMEOUT_MS": "300000",
+    },
 }
-EOF
+dest.write_text(json.dumps(data, indent=2) + "\n")
+PY
   echo "GEN   .cursor/mcp.json"
 }
 
 write_cursor_hooks_json() {
   local dest="$HOME/.cursor/hooks.json"
   local hooks_dir="$PLUGIN_ROOT/hooks"
-  local bun_path
-  local prewarm_cmd="$HOME/.local/bin/honcho-prewarm-cursor.sh"
+  local bun_path prewarm_cmd
   bun_path="$(command -v bun)"
+  prewarm_cmd="$HOME/.local/bin/honcho-prewarm-cursor.sh"
   mkdir -p "$HOME/.cursor"
 
   cat > "$dest" <<EOF
@@ -181,14 +210,21 @@ EOF
 }
 
 ensure_orphic_lens_dns() {
-  if getent hosts orphic-lens &>/dev/null; then
-    echo "OK    orphic-lens resolves"
-    return
-  fi
+  # Check /etc/hosts first (works even when the tunnel/server is down)
   if grep -qsE '^[^#].*[[:space:]]orphic-lens' /etc/hosts; then
     echo "OK    orphic-lens in /etc/hosts"
     return
   fi
+  # Fall back to live lookup (handles system DNS, mDNS, etc.)
+  if command -v getent >/dev/null 2>&1 && getent hosts orphic-lens &>/dev/null; then
+    echo "OK    orphic-lens resolves"
+    return
+  fi
+  if command -v dscacheutil >/dev/null 2>&1 && dscacheutil -q host -a name orphic-lens 2>/dev/null | grep -q ip_address; then
+    echo "OK    orphic-lens resolves"
+    return
+  fi
+
   echo "FIX   orphic-lens not resolvable — adding to /etc/hosts"
   echo '192.168.50.227 orphic-lens' | sudo tee -a /etc/hosts >/dev/null
   echo "OK    orphic-lens → 192.168.50.227"
@@ -201,9 +237,8 @@ bootstrap_honcho_server() {
     return
   fi
 
-  local endpoint peer_name
+  local endpoint
   endpoint=$(python3 -c "import json; print(json.load(open('$config')).get('endpoint',{}).get('baseUrl',''))" 2>/dev/null)
-  peer_name=$(python3 -c "import json; print(json.load(open('$config')).get('peerName',''))" 2>/dev/null)
 
   if [[ -z "$endpoint" ]]; then
     echo "SKIP  Honcho bootstrap (no endpoint in config)"
@@ -221,38 +256,31 @@ bootstrap_honcho_server() {
   python3 -c "
 import json, sys
 c = json.load(open('$config'))
-hosts = c.get('hosts', {})
 sessions = list(c.get('sessions', {}).values())
 peer = c.get('peerName', '')
-for name, block in hosts.items():
+for name, block in c.get('hosts', {}).items():
     ws = block.get('workspace', name)
     ai = block.get('aiPeer', '')
-    for s in sessions:
+    for s in sessions or ['']:
         print(f'{ws}\t{peer}\t{ai}\t{s}')
-    if not sessions:
-        print(f'{ws}\t{peer}\t{ai}\t')
 " 2>/dev/null | while IFS=$'\t' read -r workspace peer ai_peer session; do
     [[ -z "$workspace" ]] && continue
-
-    curl -sf --max-time 5 -X POST "$api/workspaces" \
+    local api_base="$api/workspaces"
+    curl -sf --max-time 5 -X POST "$api_base" \
       -H "Content-Type: application/json" \
       -d "{\"id\":\"$workspace\"}" >/dev/null 2>&1 || true
-
     [[ -n "$peer" ]] && \
-      curl -sf --max-time 5 -X POST "$api/workspaces/$workspace/peers" \
+      curl -sf --max-time 5 -X POST "$api_base/$workspace/peers" \
         -H "Content-Type: application/json" \
         -d "{\"id\":\"$peer\"}" >/dev/null 2>&1 || true
-
     [[ -n "$ai_peer" ]] && \
-      curl -sf --max-time 5 -X POST "$api/workspaces/$workspace/peers" \
+      curl -sf --max-time 5 -X POST "$api_base/$workspace/peers" \
         -H "Content-Type: application/json" \
         -d "{\"id\":\"$ai_peer\"}" >/dev/null 2>&1 || true
-
     [[ -n "$session" ]] && \
-      curl -sf --max-time 5 -X POST "$api/workspaces/$workspace/sessions" \
+      curl -sf --max-time 5 -X POST "$api_base/$workspace/sessions" \
         -H "Content-Type: application/json" \
         -d "{\"id\":\"$session\"}" >/dev/null 2>&1 || true
-
     echo "OK    honcho $workspace (peer: $peer, ai: $ai_peer, session: ${session:-none})"
   done
 }
@@ -265,8 +293,8 @@ write_cursor_hooks_json
 ensure_orphic_lens_dns
 bootstrap_honcho_server
 
-# ── 3. ConEmu terminal settings ────────────────────────────────────
-if [[ -f "$DOTFILES_DIR/scripts/configure_conemu.sh" ]] && [[ -d /mnt/c ]]; then
+# ── 3. ConEmu terminal settings (WSL only) ─────────────────────────
+if [[ "$PLATFORM" == wsl ]] && [[ -f "$DOTFILES_DIR/scripts/configure_conemu.sh" ]]; then
   bash "$DOTFILES_DIR/scripts/configure_conemu.sh"
 fi
 

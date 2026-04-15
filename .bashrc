@@ -303,6 +303,6 @@ if p.exists():
   if c.get('endpoint', {}).get('baseUrl') != '$HONCHO_ENDPOINT':
     c.setdefault('endpoint', {})['baseUrl'] = '$HONCHO_ENDPOINT'
     p.write_text(json.dumps(c, indent=2) + '\n')
-" 2>/dev/null &
+" 2>/dev/null
 export HONCHO_API_KEY="local"
 export HONCHO_PEER_NAME="skyler"

@@ -173,10 +173,10 @@ write_cursor_hooks_json() {
   "hooks": {
     "sessionStart": [
       { "command": "$prewarm_cmd" },
-      { "command": "timeout 5 $bun_path run $hooks_dir/session-start.ts" }
+      { "command": "$bun_path run $hooks_dir/session-start.ts" }
     ],
     "sessionEnd": [
-      { "command": "timeout 8 $bun_path run $hooks_dir/session-end.ts" }
+      { "command": "$bun_path run $hooks_dir/session-end.ts" }
     ],
     "beforeSubmitPrompt": [
       { "command": "$bun_path run $hooks_dir/before-submit-prompt.ts" }

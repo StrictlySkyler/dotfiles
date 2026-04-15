@@ -134,24 +134,23 @@ patch_cursor_honcho() {
 
 write_cursor_mcp_json() {
   local dest="$HOME/.cursor/mcp.json"
-  local bun_path
-  bun_path="$(command -v bun)"
+  local server="$HOME/.honcho/mcp/server.mjs"
   mkdir -p "$HOME/.cursor"
 
   # Merge: preserve any existing servers, then upsert honcho entry.
-  python3 - "$dest" "$bun_path" "$PLUGIN_ROOT/mcp-server.ts" <<'PY'
+  # Base URL is resolved at runtime from config.json (kept current by .bashrc).
+  python3 - "$dest" "$server" <<'PY'
 import json, sys
 from pathlib import Path
 
-dest, bun, server = Path(sys.argv[1]), sys.argv[2], sys.argv[3]
+dest, server = Path(sys.argv[1]), sys.argv[2]
 data = json.loads(dest.read_text()) if dest.exists() else {}
 data.setdefault("mcpServers", {})["honcho"] = {
-    "command": bun,
-    "args": ["run", server],
+    "command": "node",
+    "args": [server],
     "env": {
         "HONCHO_API_KEY": "local",
-        "HONCHO_PEER_NAME": "skyler",
-        "HONCHO_TIMEOUT_MS": "90000",
+        "HONCHO_HUMAN_PEER": "skyler",
     },
 }
 dest.write_text(json.dumps(data, indent=2) + "\n")

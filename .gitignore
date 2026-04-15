@@ -7,3 +7,6 @@
 .honcho/message-queue.jsonl
 .honcho/verbose.log
 .honcho/work-context.md
+
+__pycache__/
+*.pyc

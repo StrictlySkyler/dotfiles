@@ -283,11 +283,23 @@ for name, block in c.get('hosts', {}).items():
   done
 }
 
+disable_cursor_git_attribution() {
+  local script="$DOTFILES_DIR/scripts/disable_cursor_git_attribution.py"
+  if [[ -f "$script" ]]; then
+    if ! python3 "$script"; then
+      echo "WARN  cursor attribution script failed" >&2
+    fi
+  else
+    echo "SKIP  cursor attribution (missing script)"
+  fi
+}
+
 install_bun
 install_cursor_honcho
 patch_cursor_honcho
 write_cursor_mcp_json
 write_cursor_hooks_json
+disable_cursor_git_attribution
 ensure_orphic_lens_dns
 bootstrap_honcho_server
 

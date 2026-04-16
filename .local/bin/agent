@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
-# ConEmu-safe wrapper for cursor-agent.
-# Runs the real binary inside an alternate screen buffer when attached to a TTY,
-# so the agent UI doesn't bleed into the host scrollback.
+# Wrapper for cursor-agent.
+#
+# Note: xterm "alternate screen" (CSI ? 1049 h) intentionally has *no scrollback*
+# in ConEmu (and most terminals), which makes the agent output feel "unscrollable".
+# Default to the normal screen buffer so you can scroll normally.
+#
+# Set CURSOR_AGENT_ALT_SCREEN=1 to opt into alternate-screen behavior.
 set -uo pipefail
 
 real="$(ls -t "$HOME"/.local/share/cursor-agent/versions/*/cursor-agent 2>/dev/null | head -1 || true)"
@@ -15,14 +19,32 @@ case "${1:-}" in
   --print|-p|record|update) exec "$real" "$@" ;;
 esac
 
-# Only use alternate screen when we're actually in an interactive terminal
+# Only do terminal control when we're actually in an interactive terminal
 if [[ ! -t 0 || ! -t 1 ]]; then
   exec "$real" "$@"
 fi
 
 [[ -z "${TERM:-}" || "${TERM:-}" == dumb ]] && export TERM=xterm-256color
 
-printf '\e[?1049h\e[2J\e[H'
-trap 'printf "\e[?1049l"; stty sane 2>/dev/null || true' EXIT INT TERM HUP
+_alt="${CURSOR_AGENT_ALT_SCREEN:-0}"
+case "$_alt" in
+  1|true|TRUE|True|yes|YES|Yes|on|ON|On) _alt=1 ;;
+  *) _alt=0 ;;
+esac
+
+_stty_state="$(stty -g 2>/dev/null || true)"
+_cleanup() {
+  if [[ -n "${_stty_state:-}" ]]; then
+    stty "$_stty_state" 2>/dev/null || true
+  fi
+  if [[ "${_alt:-0}" == 1 ]]; then
+    printf "\e[?1049l"
+  fi
+}
+trap _cleanup EXIT INT TERM HUP
+
+if [[ "$_alt" == 1 ]]; then
+  printf '\e[?1049h\e[2J\e[H'
+fi
 
 "$real" "$@"

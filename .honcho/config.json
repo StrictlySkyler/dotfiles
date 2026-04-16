@@ -5,7 +5,7 @@
   "enabled": true,
   "logging": true,
   "endpoint": {
-    "baseUrl": "http://localhost:8100"
+    "baseUrl": "http://orphic-lens:8100"
   },
   "hosts": {
     "hermes": {
@@ -25,6 +25,7 @@
     "/home/skyler": "skyler-skyler",
     "/mnt/e/src/cinf": "skyler-cinf",
     "/home/skyler/src/cinf": "skyler-cinf",
-    "/home/skyler/src/cinf-1": "skyler-cinf-1"
+    "/home/skyler/src/cinf-1": "skyler-cinf-1",
+    "/home/skyler/dotfiles": "skyler-dotfiles"
   }
 }

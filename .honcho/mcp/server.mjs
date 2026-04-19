@@ -6,56 +6,76 @@ import { z } from "zod";
 
 const API_KEY = process.env.HONCHO_API_KEY || "local";
 
-let config = {};
-try {
-  const raw = readFileSync(
-    join(process.env.HOME, ".honcho", "config.json"),
-    "utf8"
-  );
-  config = JSON.parse(raw);
-} catch {}
+function loadConfig() {
+  try {
+    return JSON.parse(readFileSync(
+      join(process.env.HOME, ".honcho", "config.json"), "utf8"));
+  } catch {
+    return {};
+  }
+}
 
-// Env override > config.json endpoint (updated dynamically by .bashrc) > default
-const BASE_URL = process.env.HONCHO_BASE_URL || config?.endpoint?.baseUrl || "http://localhost:8100";
+const cfg = loadConfig();
 
-const WORKSPACE = process.env.HONCHO_WORKSPACE || config.hosts?.cursor?.workspace || "cursor";
-const AI_PEER = process.env.HONCHO_AI_PEER || config.hosts?.cursor?.aiPeer || "cursor";
-const HUMAN_PEER = process.env.HONCHO_HUMAN_PEER || config.peerName || "skyler";
+const WORKSPACE = process.env.HONCHO_WORKSPACE
+  || cfg.hosts?.cursor?.workspace || "cursor";
+const AI_PEER = process.env.HONCHO_AI_PEER
+  || cfg.hosts?.cursor?.aiPeer || "cursor";
+const HUMAN_PEER = process.env.HONCHO_HUMAN_PEER
+  || cfg.peerName || "skyler";
 
-const CONNECT_TIMEOUT_MS = 5_000;
+const RESOLVE_TIMEOUT_MS = 2_000;
 const DEFAULT_TIMEOUT_MS = 30_000;
 const INFERENCE_TIMEOUT_MS = 300_000;
 const TOOL_RACE_MS = Number(process.env.HONCHO_TOOL_RACE_MS || "30000");
 const INFERENCE_RACE_MS = Number(process.env.HONCHO_INFERENCE_RACE_MS || "120000");
 
-// ── Backend connectivity tracking ──
-// Probes the backend periodically so tool calls can fail fast when
-// the host is down instead of blocking for the full HTTP timeout.
-let alive = null; // null = unknown, true = up, false = down
-let probeP = null;
-let lastProbeAt = 0;
+const TRANSIENT_CODES = new Set(
+  ["ECONNREFUSED", "EHOSTUNREACH", "ENETUNREACH", "ENOTFOUND", "EAI_AGAIN"]);
 
-function probe() {
-  if (probeP) return probeP;
-  lastProbeAt = Date.now();
-  probeP = fetch(`${BASE_URL}/`, { signal: AbortSignal.timeout(CONNECT_TIMEOUT_MS) })
-    .then(() => { alive = true; return true; })
-    .catch(() => { alive = false; return false; })
-    .finally(() => { probeP = null; });
-  return probeP;
+// Endpoint resolution: try ordered candidates from config.json; cache
+// the winner; drop the cache on any connection-class failure so the
+// next call re-probes. This is the *only* mechanism — no env-var
+// alias, no file watcher, no periodic timer. The candidates list is
+// re-read from disk on every resolution so config edits land without
+// a process restart.
+function candidates() {
+  const c = loadConfig();
+  const list = c?.endpoint?.candidates
+    ?? (c?.endpoint?.baseUrl ? [c.endpoint.baseUrl] : []);
+  return list.length ? list : ["http://localhost:8100"];
 }
 
-setInterval(probe, 60_000);
-probe();
+let endpoint = null;
+let resolving = null;
+
+function resolveEndpoint() {
+  if (resolving) return resolving;
+  resolving = (async function _resolve() {
+    for (const url of candidates()) {
+      try {
+        await fetch(`${url}/`,
+          { signal: AbortSignal.timeout(RESOLVE_TIMEOUT_MS) });
+        return (endpoint = url);
+      } catch {}
+    }
+    return (endpoint = null);
+  })().finally(function _clear() { resolving = null; });
+  return resolving;
+}
 
 function raceNull(promise, ms) {
-  return Promise.race([promise, new Promise(r => setTimeout(() => r(null), ms))]);
+  return Promise.race([
+    promise,
+    new Promise(function _timeout(r) { setTimeout(() => r(null), ms); }),
+  ]);
 }
 
 async function api(method, path, body, timeoutMs = DEFAULT_TIMEOUT_MS) {
-  if (alive === false) {
-    const up = await raceNull(probe(), CONNECT_TIMEOUT_MS);
-    if (!up) throw new Error(`Honcho backend unreachable (${BASE_URL}). Is the host machine on?`);
+  const url = endpoint ?? await resolveEndpoint();
+  if (!url) {
+    throw new Error(
+      `Honcho unreachable. Tried: ${candidates().join(", ")}`);
   }
   const opts = {
     method,
@@ -67,19 +87,16 @@ async function api(method, path, body, timeoutMs = DEFAULT_TIMEOUT_MS) {
   };
   if (body !== undefined) opts.body = JSON.stringify(body);
   try {
-    const res = await fetch(`${BASE_URL}${path}`, opts);
-    alive = true;
+    const res = await fetch(`${url}${path}`, opts);
     const text = await res.text();
-    if (!res.ok) throw new Error(`Honcho ${method} ${path} → ${res.status}: ${text}`);
+    if (!res.ok) {
+      throw new Error(`Honcho ${method} ${path} → ${res.status}: ${text}`);
+    }
     return text ? JSON.parse(text) : null;
   } catch (err) {
-    if (
-      err.name === "TimeoutError" ||
-      err.cause?.code === "ECONNREFUSED" ||
-      err.cause?.code === "EHOSTUNREACH" ||
-      err.cause?.code === "ENETUNREACH"
-    ) {
-      alive = false;
+    if (TRANSIENT_CODES.has(err.cause?.code)
+        || err.name === "TimeoutError") {
+      endpoint = null;
     }
     throw err;
   }
@@ -96,25 +113,21 @@ async function ensureWorkspaceAndPeers() {
 
 // Wraps a tool handler so it races against a timeout and never blocks
 // the agent indefinitely. If the backend is slow (cold model) or down,
-// the agent gets a message back fast and can keep working.
+// the agent gets a message back fast and can keep working. Endpoint
+// reachability is handled inside api(); this wrapper just bounds time
+// and turns thrown errors into MCP error responses.
 function resilient(fn, raceMs, label) {
-  return async (args) => {
-    if (alive === false && Date.now() - lastProbeAt < 30_000) {
-      probe();
-      return {
-        content: [{ type: "text", text: `${label}: backend unreachable (${BASE_URL}). Is the host on?` }],
-        isError: true,
-      };
-    }
+  return async function _wrapped(args) {
     try {
       const resultP = fn(args);
       const result = await raceNull(resultP, raceMs);
       if (result === null) {
-        resultP.catch(() => {});
+        resultP.catch(function _swallow() {});
         return {
           content: [{
             type: "text",
-            text: `${label}: timed out after ${raceMs / 1000}s (backend may be warming up). Retry shortly.`,
+            text: `${label}: timed out after ${raceMs / 1000}s `
+              + `(backend may be warming up). Retry shortly.`,
           }],
         };
       }

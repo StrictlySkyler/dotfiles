@@ -288,21 +288,9 @@ export PATH="/home/skyler/fvm/bin:$PATH"
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
-# Honcho (self-hosted on orphic-lens) — use LAN direct if reachable, else tunnel.
-# Also update ~/.honcho/config.json since the plugin reads the file, not the env.
-if curl -s --connect-timeout 1 http://orphic-lens:8100/ >/dev/null 2>&1; then
-  export HONCHO_ENDPOINT="http://orphic-lens:8100"
-else
-  export HONCHO_ENDPOINT="http://localhost:8100"
-fi
-python3 -c "
-import json; from pathlib import Path
-p = Path.home() / '.honcho' / 'config.json'
-if p.exists():
-  c = json.loads(p.read_text())
-  if c.get('endpoint', {}).get('baseUrl') != '$HONCHO_ENDPOINT':
-    c.setdefault('endpoint', {})['baseUrl'] = '$HONCHO_ENDPOINT'
-    p.write_text(json.dumps(c, indent=2) + '\n')
-" 2>/dev/null
+# Honcho (self-hosted on orphic-lens). Endpoint selection lives in the
+# MCP server itself: it walks the ordered candidates list in
+# ~/.honcho/config.json and caches the first reachable one, dropping
+# the cache on any connection failure. No probe-and-rewrite here.
 export HONCHO_API_KEY="local"
 export HONCHO_PEER_NAME="skyler"

@@ -5,7 +5,10 @@
   "enabled": true,
   "logging": true,
   "endpoint": {
-    "baseUrl": "http://orphic-lens:8100"
+    "candidates": [
+      "http://orphic-lens:8100",
+      "http://localhost:8100"
+    ]
   },
   "hosts": {
     "hermes": {

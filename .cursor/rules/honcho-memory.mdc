@@ -1,31 +1,55 @@
 ---
 name: honcho-memory
-description: Honcho persistent memory system is active. The agent has cross-session memory and should leverage it.
+description: Honcho persistent memory system is active. The agent has cross-session memory and MUST leverage it aggressively.
 alwaysApply: true
 ---
 
 # Honcho Memory
 
-You have persistent memory via Honcho. Context about the user, their preferences, and past work is loaded automatically at the start of every session.
+You have persistent memory via Honcho. This is NOT optional. You MUST use it.
 
-## How to use it:
+## MANDATORY: Query Memory FIRST
 
-- Trust the Honcho context injected at session start. It contains what you know about the user - act on it.
-- Use `chat` or `search` MCP tools mid-conversation when you need context beyond what was loaded at startup.
-- Use `create_conclusion` to save new insights as you learn them: preferences, decisions, patterns, things the user has asked you not to do.
-- The user should never have to repeat themselves. If you've learned something before, you should already know it.
-- When delegating to subagents, the memory-analyst agent can perform deep memory queries for you.
+Before investigating ANY question about:
+- User preferences, patterns, or past decisions
+- Project configuration, architecture, or conventions
+- Previously solved problems or established workflows
+- AWS, infrastructure, deployment details
+- Anything the user might have told you before
 
-## Memory-aware behaviors:
+You MUST call `query_conclusions` or `search_workspace` FIRST. Do not assume you don't know something - CHECK FIRST.
 
-- Before asking the user a preference question, check if you already know the answer from loaded context.
-- When you discover a new user preference or pattern, save it with `create_conclusion`.
-- Reference past work naturally ("Last time we worked on X, you preferred Y...").
-- If context seems stale or you need deeper history, use the search tool.
+## MANDATORY: Save Conclusions Aggressively
+
+Call `create_conclusion` immediately when you learn:
+- Any user preference (explicit or inferred)
+- Project configuration details (credentials, endpoints, settings)
+- Infrastructure state (AWS accounts, resource configs, deployed values)
+- Decisions made during the session
+- Corrections the user makes to your behavior
+- Patterns in how the user works
+- Things the user asks you NOT to do
+
+Do NOT wait until end of session. Save conclusions AS YOU LEARN THEM.
+
+## MANDATORY: Reference Memory Naturally
+
+- When you find relevant memory, ACT on it immediately
+- Reference past work: "Last time we worked on X..." or "You previously mentioned..."
+- If memory contradicts current state, note the discrepancy
+- The user should NEVER have to repeat themselves
+
+## Memory Tools
+
+- `query_conclusions` - semantic search across saved conclusions
+- `search_workspace` - broader search across all workspace data  
+- `get_context` - get current context summary for a peer
+- `create_conclusion` - save new insight (USE THIS LIBERALLY)
+- `chat` - dialectic conversation for deeper analysis
 
 ## If Honcho is not configured
 
-If the session start context says Honcho is not configured, or if MCP tool calls return setup instructions instead of results:
-- Suggest running `/honcho:setup` for guided first-time configuration.
-- The user needs a free API key from https://app.honcho.dev and must set `HONCHO_API_KEY` in their shell config.
-- Do not repeatedly attempt MCP tool calls that will fail -- help the user get set up first.
+If MCP tool calls fail or return setup instructions:
+- Suggest running `/honcho:setup` for guided first-time configuration
+- User needs API key from https://app.honcho.dev and must set `HONCHO_API_KEY`
+- Do not repeatedly attempt failing MCP calls

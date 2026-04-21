@@ -4,6 +4,12 @@ case $- in
     *) return;;
 esac
 
+# WSL via ConPTY doesn't propagate TERM; fix before oh-my-bash loads
+if [[ "$TERM" == "dumb" && -n "$WSL_DISTRO_NAME" ]]; then
+    export TERM=xterm-256color
+    export COLORTERM=24bit
+fi
+
 # Path to your oh-my-bash installation.
 export OSH='/home/skyler/.oh-my-bash'
 
@@ -294,3 +300,13 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 # the cache on any connection failure. No probe-and-rewrite here.
 export HONCHO_API_KEY="local"
 export HONCHO_PEER_NAME="skyler"
+
+# Tabby: show CWD as the tab title (OSC 0) and report it for "Copy current
+# path" / SFTP panel (OSC 1337). Registered via oh-my-bash's prompt hook
+# helper so it runs without needing the bash-preexec plugin.
+_tabby_set_tab_title() {
+    local cwd=${PWD/#$HOME/\~}
+    printf '\033]0;%s\007' "$cwd"
+    printf '\033]1337;CurrentDir=%s\007' "$PWD"
+}
+_omb_util_add_prompt_command _tabby_set_tab_title

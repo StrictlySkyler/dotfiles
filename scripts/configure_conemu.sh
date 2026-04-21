@@ -7,14 +7,10 @@ set -euo pipefail
 #   FixFarBorders    = OFF  (let font render box-drawing chars, not GDI)
 #   EnhanceGraphics  = OFF  (stop replacing Unicode with ConEmu graphics)
 #   chcp 65001             (UTF-8 console code page in EnvironmentSet)
-#   WSL task command        (no Connector/p flag — use ConPTY)
+#   WSL task: native wsl.exe (WSL2) + ConEmu console flags
 #
-# The first three can be changed at runtime via GuiMacro. The task command
-# can ONLY be changed in the XML when ConEmu is not running, because ConEmu
-# overwrites the XML with its in-memory state on exit.
 
 CONEMU_XML="/mnt/c/Users/skyle/AppData/Roaming/ConEmu.xml"
-CONEMU_EXE="/mnt/c/Program Files/ConEmu/ConEmu64.exe"
 CONEMU_C="/mnt/c/Program Files/ConEmu/ConEmu/ConEmuC64.exe"
 
 patch_xml() {
@@ -36,6 +32,13 @@ patch_xml() {
     changed=1
   fi
 
+  # ProcessAnsi: 00 → 01 (required for cursor/erase sequences used by Ink)
+  if grep -q '"ProcessAnsi" type="hex" data="00"' "$CONEMU_XML"; then
+    sed -i 's/\("ProcessAnsi" type="hex" data="\)00"/\101"/' "$CONEMU_XML"
+    echo "FIX   ProcessAnsi → ON"
+    changed=1
+  fi
+
   # chcp 65001 in EnvironmentSet
   if ! grep -q 'chcp 65001' "$CONEMU_XML"; then
     sed -i '/"EnvironmentSet" type="multi"/a\\t\t\t\t<line data="chcp 65001"/>' "$CONEMU_XML"
@@ -43,10 +46,54 @@ patch_xml() {
     changed=1
   fi
 
-  # WSL task: remove Connector flag (p), keep m:/mnt
-  if grep -q 'cur_console:pm:/mnt' "$CONEMU_XML"; then
-    sed -i 's/cur_console:pm:\/mnt/cur_console:m:\/mnt/g' "$CONEMU_XML"
-    echo "FIX   WSL task: Connector mode (p flag) removed"
+  # Ensure Connector flag (p) is present on WSL task
+  if grep -q 'cur_console:m:/mnt' "$CONEMU_XML" && ! grep -q 'cur_console:pm:/mnt' "$CONEMU_XML"; then
+    sed -i 's/cur_console:m:\/mnt/cur_console:pm:\/mnt/g' "$CONEMU_XML"
+    echo "FIX   WSL task: Connector mode (p flag) restored"
+    changed=1
+  fi
+
+  # Ensure {Bash::bash} task uses native wsl.exe (WSL2-supported path)
+  if python3 - "$CONEMU_XML" <<'PY'
+import re, sys
+from pathlib import Path
+
+xml_path = Path(sys.argv[1])
+text = xml_path.read_text(encoding="utf-8", errors="surrogatepass")
+
+desired = r'wsl.exe -cur_console:pm:/mnt ~'
+
+lines = text.splitlines(True)
+out = []
+in_task7 = False
+changed = False
+
+for line in lines:
+    if '<key name="Task7"' in line:
+        in_task7 = True
+        out.append(line)
+        continue
+    if in_task7 and '</key>' in line:
+        in_task7 = False
+        out.append(line)
+        continue
+    if in_task7 and 'name="Cmd1"' in line and 'type="string"' in line:
+        # Preserve indentation
+        indent = re.match(r'^(\s*)', line).group(1)
+        new_line = f'{indent}<value name="Cmd1" type="string" data="{desired}"/>\n'
+        if new_line != line:
+            changed = True
+        out.append(new_line)
+        continue
+    out.append(line)
+
+if changed:
+    xml_path.write_text("".join(out), encoding="utf-8", errors="surrogatepass")
+    sys.exit(0)
+sys.exit(1)
+PY
+  then
+    echo "FIX   WSL task: native wsl.exe"
     changed=1
   fi
 
@@ -67,61 +114,18 @@ apply_runtime_guimacro() {
   "$CONEMU_C" /GuiMacro:"$pid" SetOption Check 1207 0 >/dev/null 2>&1 || true
   "$CONEMU_C" /GuiMacro:"$pid" SetOption Check 2289 0 >/dev/null 2>&1 || true
   echo "OK    GuiMacro: FixFarBorders=OFF, EnhanceGraphics=OFF"
-  echo "$pid"
-}
-
-schedule_task_fix() {
-  # ConEmu overwrites the XML on exit, undoing our task command edit.
-  # This drops a one-shot script that watches for ConEmu to close,
-  # patches the XML, then relaunches ConEmu.
-  local marker="/tmp/.conemu_task_fix_pending"
-  if [[ -f "$marker" ]]; then
-    echo "OK    Task fix already scheduled"
-    return
-  fi
-
-  if ! grep -q 'cur_console:pm:/mnt' "$CONEMU_XML"; then
-    echo "OK    WSL task already correct (no Connector flag)"
-    return
-  fi
-
-  touch "$marker"
-  (
-    # Wait for ConEmu to exit
-    while powershell.exe -NoProfile -Command \
-      'if (Get-Process ConEmu64 -ErrorAction SilentlyContinue) { exit 0 } else { exit 1 }' \
-      2>/dev/null; do
-      sleep 2
-    done
-
-    sleep 1  # let file handles release
-
-    # Now ConEmu is closed — patch the XML safely
-    if [[ -f "$CONEMU_XML" ]] && grep -q 'cur_console:pm:/mnt' "$CONEMU_XML"; then
-      sed -i 's/cur_console:pm:\/mnt/cur_console:m:\/mnt/g' "$CONEMU_XML"
-    fi
-
-    rm -f "$marker"
-  ) &
-  disown
-
-  echo "SCHED Task fix: will patch XML and after ConEmu closes"
-  echo "      (just close and reopen ConEmu when ready)"
 }
 
 echo "── ConEmu configuration ──"
 
 if [[ "${1:-}" == "--offline" ]]; then
-  # Direct XML edit — use when ConEmu is NOT running
   patch_xml
   exit 0
 fi
 
-# Runtime: apply what we can via GuiMacro
-if pid=$(apply_runtime_guimacro 2>/dev/null) && [[ -n "$pid" ]]; then
-  # Schedule the task command fix for when ConEmu closes
-  schedule_task_fix
+# Runtime: apply what we can via GuiMacro, then patch XML for persistence
+if apply_runtime_guimacro 2>/dev/null; then
+  patch_xml 2>/dev/null || true
 else
-  # ConEmu not running — edit XML directly
   patch_xml
 fi

@@ -1,5 +1,3 @@
-unset -f agent 2>/dev/null || true
-
 alias _='sudo'
 alias astudio='sh ~/dev/android-studio/bin/studio.sh'
 alias vi=vim

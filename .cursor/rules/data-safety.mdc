@@ -1,0 +1,48 @@
+---
+description: ABSOLUTE prohibition on destructive actions without explicit user confirmation
+alwaysApply: true
+---
+
+# Data Safety Rules - NEVER DELETE WITHOUT TRIPLE-CHECKING
+
+## ABSOLUTE PROHIBITION
+
+NEVER take any action that deletes, destroys, or risks loss of:
+- User data of any kind
+- Database records or collections
+- Files or directories
+- Container volumes or state
+- Cloud resources (AWS, GCP, etc.)
+- Honcho memories/conclusions
+- Git history or branches
+- Secrets, credentials, or configuration
+- Anything that cannot be easily recovered
+
+## TRIPLE-CHECK PROTOCOL
+
+Before ANY potentially destructive action:
+
+1. **STOP** - Do not proceed automatically
+2. **LIST** - Show the user exactly what will be affected
+3. **EXPLAIN** - State the risk and what could be lost
+4. **ASK** - Get explicit "yes" confirmation
+5. **VERIFY** - If action is broad/sweeping, ask AGAIN: "This will delete X, Y, Z - are you absolutely sure?"
+6. **PROCEED** - Only after explicit confirmation
+
+## Examples Requiring Triple-Check
+
+- `rm -rf`, `rm -r`, any recursive delete
+- `DROP DATABASE`, `DELETE FROM`, truncate operations
+- `terraform destroy`, `aws ... delete-*`, `aws ... terminate-*`
+- `git push --force`, `git reset --hard`, `git branch -D`
+- `podman/docker system prune`, `podman/docker rm -f`
+- `honcho-delete_conclusion` or any memory deletion
+- Any command with `--force`, `--hard`, `-f` flags on destructive operations
+
+## When In Doubt
+
+ASK. Do not assume. Do not proceed. The cost of asking is zero. The cost of data loss is catastrophic.
+
+## Context
+
+This rule exists because of past incidents where destructive actions caused irreversible loss of data and memories. The user has explicitly stated: any action with a POSSIBILITY of risk must be triple-checked first.

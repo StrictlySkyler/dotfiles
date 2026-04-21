@@ -5,6 +5,7 @@
   "enabled": true,
   "logging": true,
   "endpoint": {
+    "baseUrl": "http://orphic-lens:8100",
     "candidates": [
       "http://orphic-lens:8100",
       "http://localhost:8100"
@@ -29,6 +30,7 @@
     "/mnt/e/src/cinf": "skyler-cinf",
     "/home/skyler/src/cinf": "skyler-cinf",
     "/home/skyler/src/cinf-1": "skyler-cinf-1",
-    "/home/skyler/dotfiles": "skyler-dotfiles"
+    "/home/skyler/dotfiles": "skyler-dotfiles",
+    "/home/skyler/.honcho/plugins/cursor-honcho/plugins/honcho": "skyler-honcho"
   }
 }

@@ -98,6 +98,7 @@ CURSOR_HONCHO_DIR="$HOME/.honcho/plugins/cursor-honcho"
 PLUGIN_ROOT="$CURSOR_HONCHO_DIR/plugins/honcho"
 CURSOR_HONCHO_REPO="https://github.com/plastic-labs/cursor-honcho.git"
 CURSOR_HONCHO_PATCHER="$DOTFILES_DIR/scripts/patch_cursor_honcho.py"
+HERMES_PATCHER="$DOTFILES_DIR/scripts/patch_hermes_config.py"
 
 install_bun() {
   if command -v bun &>/dev/null; then
@@ -147,7 +148,10 @@ dest, server = Path(sys.argv[1]), sys.argv[2]
 data = json.loads(dest.read_text()) if dest.exists() else {}
 data.setdefault("mcpServers", {})["honcho"] = {
     "command": "node",
-    "args": [server],
+    # server.mjs is symlinked from the dotfiles repo, while node_modules is
+    # installed under ~/.honcho/mcp. Keep Node's main-module lookup at the
+    # symlink path so dependency resolution uses the installed dependencies.
+    "args": ["--preserve-symlinks-main", server],
     "env": {
         "HONCHO_API_KEY": "local",
         "HONCHO_HUMAN_PEER": "skyler",
@@ -156,6 +160,78 @@ data.setdefault("mcpServers", {})["honcho"] = {
 dest.write_text(json.dumps(data, indent=2) + "\n")
 PY
   echo "GEN   .cursor/mcp.json"
+}
+
+smoke_test_honcho_mcp() {
+  local dest="$HOME/.cursor/mcp.json"
+  python3 - "$dest" <<'PY'
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+dest = Path(sys.argv[1])
+data = json.loads(dest.read_text())
+server = data.get("mcpServers", {}).get("honcho")
+if not server:
+    print("WARN  Honcho MCP smoke test skipped (no honcho server in mcp.json)")
+    raise SystemExit(0)
+
+cmd = [server["command"], *server.get("args", [])]
+env = os.environ.copy()
+env.update(server.get("env", {}))
+payload = "\n".join([
+    json.dumps({
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+            "protocolVersion": "2024-11-05",
+            "capabilities": {},
+            "clientInfo": {"name": "dotfiles-install", "version": "0"},
+        },
+    }),
+    json.dumps({
+        "jsonrpc": "2.0",
+        "method": "notifications/initialized",
+        "params": {},
+    }),
+    json.dumps({
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "tools/list",
+        "params": {},
+    }),
+    "",
+])
+
+try:
+    result = subprocess.run(
+        cmd,
+        input=payload,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env=env,
+        timeout=10,
+        check=False,
+    )
+except FileNotFoundError as exc:
+    print(f"FAIL  Honcho MCP smoke test could not start: {exc}", file=sys.stderr)
+    raise SystemExit(1)
+except subprocess.TimeoutExpired:
+    print("FAIL  Honcho MCP smoke test timed out", file=sys.stderr)
+    raise SystemExit(1)
+
+if result.returncode != 0 or '"tools"' not in result.stdout:
+    print("FAIL  Honcho MCP smoke test failed", file=sys.stderr)
+    if result.stderr:
+        print(result.stderr.strip(), file=sys.stderr)
+    raise SystemExit(1)
+
+print("OK    Honcho MCP bridge smoke test")
+PY
 }
 
 write_cursor_hooks_json() {
@@ -294,12 +370,22 @@ disable_cursor_git_attribution() {
   fi
 }
 
+patch_hermes_config() {
+  if [[ -f "$HERMES_PATCHER" ]]; then
+    python3 "$HERMES_PATCHER" "$HOME/.hermes"
+  else
+    echo "SKIP  Hermes config patch (missing patcher)"
+  fi
+}
+
 install_bun
 install_cursor_honcho
 patch_cursor_honcho
 write_cursor_mcp_json
+smoke_test_honcho_mcp
 write_cursor_hooks_json
 disable_cursor_git_attribution
+patch_hermes_config
 ensure_orphic_lens_dns
 bootstrap_honcho_server
 

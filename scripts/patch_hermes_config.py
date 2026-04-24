@@ -57,6 +57,9 @@ def patch_config(config_path: Path) -> bool:
 
     data = load_yaml(config_path)
 
+    agent = ensure_dict(data, "agent")
+    agent["reasoning_effort"] = "none"
+
     model = ensure_dict(data, "model")
     model["default"] = MODEL
     model["provider"] = "custom"
@@ -88,6 +91,7 @@ def patch_config(config_path: Path) -> bool:
     delegation["provider"] = "custom"
     delegation["base_url"] = LLM_BASE_URL
     delegation.setdefault("api_key", "")
+    delegation["reasoning_effort"] = "none"
 
     providers = data.get("custom_providers")
     if not isinstance(providers, list):
@@ -131,8 +135,9 @@ def patch_honcho_config(honcho_path: Path) -> None:
     hermes["workspace"] = "hermes"
     hermes["peerName"] = "skyler"
     hermes["aiPeer"] = "hermes"
-    hermes.setdefault("memoryMode", "auto")
-    hermes.setdefault("recallMode", "hybrid")
+    hermes["memoryMode"] = "auto"
+    hermes["recallMode"] = "tools"
+    hermes["dialecticReasoningLevel"] = "minimal"
     with honcho_path.open("w") as handle:
         json.dump(data, handle, indent=2)
         handle.write("\n")

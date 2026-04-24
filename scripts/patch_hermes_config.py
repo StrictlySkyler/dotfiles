@@ -58,7 +58,18 @@ def patch_config(config_path: Path) -> bool:
     data = load_yaml(config_path)
 
     agent = ensure_dict(data, "agent")
-    agent["reasoning_effort"] = "none"
+    agent["reasoning_effort"] = "low"
+
+    clarify = ensure_dict(data, "clarify")
+    clarify["timeout"] = 15
+
+    platform_toolsets = ensure_dict(data, "platform_toolsets")
+    cli_toolsets = platform_toolsets.get("cli")
+    if isinstance(cli_toolsets, list):
+        platform_toolsets["cli"] = [
+            "clarify",
+            *[item for item in cli_toolsets if item != "clarify"],
+        ]
 
     model = ensure_dict(data, "model")
     model["default"] = MODEL
@@ -66,6 +77,7 @@ def patch_config(config_path: Path) -> bool:
     model["base_url"] = LLM_BASE_URL
     model["context_length"] = CONTEXT_LENGTH
     model["ollama_num_ctx"] = CONTEXT_LENGTH
+    model["max_tokens"] = 1024
 
     compression = ensure_dict(data, "compression")
     compression["summary_model"] = MODEL
@@ -91,7 +103,7 @@ def patch_config(config_path: Path) -> bool:
     delegation["provider"] = "custom"
     delegation["base_url"] = LLM_BASE_URL
     delegation.setdefault("api_key", "")
-    delegation["reasoning_effort"] = "none"
+    delegation["reasoning_effort"] = "low"
 
     providers = data.get("custom_providers")
     if not isinstance(providers, list):

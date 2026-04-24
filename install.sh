@@ -99,6 +99,7 @@ PLUGIN_ROOT="$CURSOR_HONCHO_DIR/plugins/honcho"
 CURSOR_HONCHO_REPO="https://github.com/plastic-labs/cursor-honcho.git"
 CURSOR_HONCHO_PATCHER="$DOTFILES_DIR/scripts/patch_cursor_honcho.py"
 HERMES_PATCHER="$DOTFILES_DIR/scripts/patch_hermes_config.py"
+HERMES_SOURCE_PATCHER="$DOTFILES_DIR/scripts/patch_hermes_agent_sources.py"
 
 install_bun() {
   if command -v bun &>/dev/null; then
@@ -375,6 +376,11 @@ patch_hermes_config() {
     python3 "$HERMES_PATCHER" "$HOME/.hermes"
   else
     echo "SKIP  Hermes config patch (missing patcher)"
+  fi
+  if [[ -f "$HERMES_SOURCE_PATCHER" ]]; then
+    python3 "$HERMES_SOURCE_PATCHER" "$HOME/.hermes"
+  else
+    echo "SKIP  Hermes source patch (missing patcher)"
   fi
 }
 

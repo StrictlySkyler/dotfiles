@@ -25,7 +25,8 @@ The script:
    may prompt for `sudo`).
 6. Patches an existing `~/.hermes/config.yaml` for the orphic-lens model:
    `Qwen_Qwen3-14B-Q4_K_M.gguf`, 65,536 token context, and matching
-   Ollama `num_ctx`.
+   Ollama `num_ctx`. It also reapplies local Hermes source patches after
+   `hermes setup` or `hermes update`.
 7. **Bootstraps the Honcho server** — creates workspaces, peers, and
    sessions for every host in `.honcho/config.json`. Idempotent and
    safe to re-run. Skips gracefully if the server is unreachable.
@@ -65,6 +66,7 @@ commented out — set it via environment or a local override.
 | `.local/bin/honcho-prewarm-cursor.sh` | Detached session-start warmup for Honcho dialectic chat |
 | `scripts/patch_cursor_honcho.py` | Applies local fixes to the upstream cursor-honcho clone |
 | `scripts/patch_hermes_config.py` | Applies durable Hermes model/context defaults after `hermes setup` |
+| `scripts/patch_hermes_agent_sources.py` | Reapplies local Hermes source patches after `hermes update` |
 
 ### Generated at install time (not in repo)
 

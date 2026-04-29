@@ -168,8 +168,10 @@ smoke_test_honcho_mcp() {
   python3 - "$dest" <<'PY'
 import json
 import os
+import select
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 dest = Path(sys.argv[1])
@@ -208,27 +210,82 @@ payload = "\n".join([
 ])
 
 try:
-    result = subprocess.run(
+    proc = subprocess.Popen(
         cmd,
-        input=payload,
-        text=True,
+        stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         env=env,
-        timeout=10,
-        check=False,
     )
 except FileNotFoundError as exc:
     print(f"FAIL  Honcho MCP smoke test could not start: {exc}", file=sys.stderr)
     raise SystemExit(1)
-except subprocess.TimeoutExpired:
-    print("FAIL  Honcho MCP smoke test timed out", file=sys.stderr)
-    raise SystemExit(1)
 
-if result.returncode != 0 or '"tools"' not in result.stdout:
-    print("FAIL  Honcho MCP smoke test failed", file=sys.stderr)
-    if result.stderr:
-        print(result.stderr.strip(), file=sys.stderr)
+saw_tools = False
+stdout_buffer = ""
+failure = "failed"
+try:
+    assert proc.stdin is not None
+    assert proc.stdout is not None
+    proc.stdin.write(payload.encode())
+    proc.stdin.close()
+
+    deadline = time.monotonic() + 10
+    while time.monotonic() < deadline:
+        remaining = max(0, deadline - time.monotonic())
+        ready, _, _ = select.select([proc.stdout.fileno()], [], [], min(0.2, remaining))
+        if ready:
+            chunk = os.read(proc.stdout.fileno(), 65536)
+            if not chunk:
+                break
+            stdout_buffer += chunk.decode("utf-8", "replace")
+            while "\n" in stdout_buffer:
+                line, stdout_buffer = stdout_buffer.split("\n", 1)
+                if not line:
+                    continue
+                try:
+                    message = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                result = message.get("result", {})
+                if message.get("id") == 2 and "tools" in result:
+                    saw_tools = True
+                    break
+            if saw_tools:
+                break
+
+        if proc.poll() is not None:
+            chunk = os.read(proc.stdout.fileno(), 65536)
+            stdout_buffer += chunk.decode("utf-8", "replace")
+            for line in stdout_buffer.splitlines():
+                try:
+                    message = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                result = message.get("result", {})
+                if message.get("id") == 2 and "tools" in result:
+                    saw_tools = True
+                    break
+            break
+
+    if not saw_tools:
+        if proc.poll() is None:
+            failure = "timed out"
+finally:
+    if proc.poll() is None:
+        proc.terminate()
+        try:
+            proc.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.wait()
+
+if not saw_tools:
+    print(f"FAIL  Honcho MCP smoke test {failure}", file=sys.stderr)
+    if proc.stderr:
+        stderr = proc.stderr.read().decode("utf-8", "replace").strip()
+        if stderr:
+            print(stderr, file=sys.stderr)
     raise SystemExit(1)
 
 print("OK    Honcho MCP bridge smoke test")
@@ -312,16 +369,36 @@ bootstrap_honcho_server() {
     return
   fi
 
-  local endpoint
-  endpoint=$(python3 -c "import json; print(json.load(open('$config')).get('endpoint',{}).get('baseUrl',''))" 2>/dev/null)
+  local endpoints
+  endpoints=$(python3 -c "
+import json
+from urllib.parse import urlparse
+c = json.load(open('$config')).get('endpoint', {})
+seen = set()
+urls = [url for url in c.get('candidates', []) + [c.get('baseUrl', '')] if url]
+urls.sort(key=lambda url: 0 if urlparse(url).hostname in ('localhost', '127.0.0.1', '::1') else 1)
+for url in urls:
+    if url and url not in seen:
+        seen.add(url)
+        print(url)
+" 2>/dev/null)
 
-  if [[ -z "$endpoint" ]]; then
+  if [[ -z "$endpoints" ]]; then
     echo "SKIP  Honcho bootstrap (no endpoint in config)"
     return
   fi
 
-  if ! curl -sf --max-time 5 "$endpoint/docs" >/dev/null 2>&1; then
-    echo "WARN  Honcho server at $endpoint not reachable — skipping bootstrap"
+  local endpoint=""
+  while IFS= read -r candidate; do
+    if curl -sf --connect-timeout 1 --max-time 2 "$candidate/docs" >/dev/null 2>&1; then
+      endpoint="$candidate"
+      break
+    fi
+  done <<< "$endpoints"
+
+  if [[ -z "$endpoint" ]]; then
+    echo "WARN  Honcho server not reachable — skipping bootstrap"
+    echo "      Tried: $(echo "$endpoints" | paste -sd ', ' -)"
     echo "      Run ./install.sh again once the server is up."
     return
   fi
@@ -341,19 +418,19 @@ for name, block in c.get('hosts', {}).items():
 " 2>/dev/null | while IFS=$'\t' read -r workspace peer ai_peer session; do
     [[ -z "$workspace" ]] && continue
     local api_base="$api/workspaces"
-    curl -sf --max-time 5 -X POST "$api_base" \
+    curl -sf --connect-timeout 1 --max-time 2 -X POST "$api_base" \
       -H "Content-Type: application/json" \
       -d "{\"id\":\"$workspace\"}" >/dev/null 2>&1 || true
     [[ -n "$peer" ]] && \
-      curl -sf --max-time 5 -X POST "$api_base/$workspace/peers" \
+      curl -sf --connect-timeout 1 --max-time 2 -X POST "$api_base/$workspace/peers" \
         -H "Content-Type: application/json" \
         -d "{\"id\":\"$peer\"}" >/dev/null 2>&1 || true
     [[ -n "$ai_peer" ]] && \
-      curl -sf --max-time 5 -X POST "$api_base/$workspace/peers" \
+      curl -sf --connect-timeout 1 --max-time 2 -X POST "$api_base/$workspace/peers" \
         -H "Content-Type: application/json" \
         -d "{\"id\":\"$ai_peer\"}" >/dev/null 2>&1 || true
     [[ -n "$session" ]] && \
-      curl -sf --max-time 5 -X POST "$api_base/$workspace/sessions" \
+      curl -sf --connect-timeout 1 --max-time 2 -X POST "$api_base/$workspace/sessions" \
         -H "Content-Type: application/json" \
         -d "{\"id\":\"$session\"}" >/dev/null 2>&1 || true
     echo "OK    honcho $workspace (peer: $peer, ai: $ai_peer, session: ${session:-none})"

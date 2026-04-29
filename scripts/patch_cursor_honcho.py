@@ -362,6 +362,28 @@ def main() -> int:
     ):
         changed.append(session_start_ts)
 
+    # ── session-end.ts wrapper: never block Cursor shutdown indefinitely ──
+    session_end_ts = plugin_root / "src/hooks/session-end.ts"
+    if replace_one_of(
+        session_end_ts,
+        [
+            """  // Play cooldown animation\n  await playCooldown("saving memory");\n""",
+        ],
+        """  // Shutdown should be quick; the cooldown animation alone costs about a second.\n  if (process.env.HONCHO_SESSION_END_COOLDOWN === "1") {\n    await playCooldown("saving memory");\n  }\n""",
+    ):
+        changed.append(session_end_ts)
+
+    session_end_wrapper_ts = plugin_root / "hooks/session-end.ts"
+    if replace_one_of(
+        session_end_wrapper_ts,
+        [
+            """setDetectedHost(detectHost(input));\nawait handleSessionEnd();\n""",
+            """setDetectedHost(detectHost(input));\nconst maxMs = Number(process.env.HONCHO_SESSION_END_MAX_MS || "2500");\nconst timeout = setTimeout(() => {\n  console.error(`[honcho] Warning: session-end exceeded ${maxMs}ms; exiting without blocking shutdown`);\n  process.exit(0);\n}, maxMs);\ntimeout.unref?.();\n\ntry {\n  await handleSessionEnd();\n} finally {\n  clearTimeout(timeout);\n}\n""",
+        ],
+        """setDetectedHost(detectHost(input));\nconst maxMs = Number(process.env.HONCHO_SESSION_END_MAX_MS || "1500");\nconst timeout = setTimeout(() => {\n  console.error(`[honcho] Warning: session-end exceeded ${maxMs}ms; exiting without blocking shutdown`);\n  process.exit(0);\n}, maxMs);\ntimeout.unref?.();\n\ntry {\n  await handleSessionEnd();\n} finally {\n  clearTimeout(timeout);\n}\n""",
+    ):
+        changed.append(session_end_wrapper_ts)
+
     if changed:
         unique_paths = []
         seen = set()

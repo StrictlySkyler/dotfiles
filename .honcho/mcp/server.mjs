@@ -24,7 +24,7 @@ const AI_PEER = process.env.HONCHO_AI_PEER
 const HUMAN_PEER = process.env.HONCHO_HUMAN_PEER
   || cfg.peerName || "skyler";
 
-const RESOLVE_TIMEOUT_MS = 2_000;
+const RESOLVE_TIMEOUT_MS = 1_000;
 const DEFAULT_TIMEOUT_MS = 30_000;
 const INFERENCE_TIMEOUT_MS = 300_000;
 const TOOL_RACE_MS = Number(process.env.HONCHO_TOOL_RACE_MS || "30000");
@@ -43,7 +43,17 @@ function candidates() {
   const c = loadConfig();
   const list = c?.endpoint?.candidates
     ?? (c?.endpoint?.baseUrl ? [c.endpoint.baseUrl] : []);
-  return list.length ? list : ["http://localhost:8100"];
+  const ordered = list.length ? [...list] : ["http://localhost:8100"];
+  return ordered.sort(function _preferLoopback(a, b) {
+    const isLoopback = function _isLoopback(url) {
+      try {
+        return ["localhost", "127.0.0.1", "::1"].includes(new URL(url).hostname);
+      } catch {
+        return false;
+      }
+    };
+    return Number(isLoopback(b)) - Number(isLoopback(a));
+  });
 }
 
 let endpoint = null;
@@ -54,9 +64,9 @@ function resolveEndpoint() {
   resolving = (async function _resolve() {
     for (const url of candidates()) {
       try {
-        await fetch(`${url}/`,
+        const res = await fetch(`${url}/docs`,
           { signal: AbortSignal.timeout(RESOLVE_TIMEOUT_MS) });
-        return (endpoint = url);
+        if (res.ok) return (endpoint = url);
       } catch {}
     }
     return (endpoint = null);

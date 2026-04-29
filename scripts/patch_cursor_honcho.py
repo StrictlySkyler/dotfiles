@@ -75,6 +75,15 @@ def main() -> int:
     ):
         changed.append(config_ts)
 
+    if replace_one_of(
+        config_ts,
+        [
+            """export function getHonchoBaseUrl(config: HonchoConfig): string {\n  if (config.endpoint?.baseUrl) {\n    const url = config.endpoint.baseUrl;\n    return url.endsWith("/v3") ? url : `${url}/v3`;\n  }\n  if (config.endpoint?.environment === "local") {\n    return HONCHO_BASE_URLS.local;\n  }\n  return HONCHO_BASE_URLS.production;\n}\n""",
+        ],
+        """export function getHonchoBaseUrl(config: HonchoConfig): string {\n  const candidates = (config.endpoint as any)?.candidates as string[] | undefined;\n  if (candidates?.length) {\n    const ordered = [...candidates].sort((a, b) => {\n      const isLoopback = (url: string) => {\n        try {\n          return ["localhost", "127.0.0.1", "::1"].includes(new URL(url).hostname);\n        } catch {\n          return false;\n        }\n      };\n      return Number(isLoopback(b)) - Number(isLoopback(a));\n    });\n    const url = ordered[0];\n    return url.endsWith("/v3") ? url : `${url}/v3`;\n  }\n  if (config.endpoint?.baseUrl) {\n    const url = config.endpoint.baseUrl;\n    return url.endsWith("/v3") ? url : `${url}/v3`;\n  }\n  if (config.endpoint?.environment === "local") {\n    return HONCHO_BASE_URLS.local;\n  }\n  return HONCHO_BASE_URLS.production;\n}\n""",
+    ):
+        changed.append(config_ts)
+
     # ── cache.ts: dialectic result caching ──────────────────────────
     cache_ts = plugin_root / "src/cache.ts"
 
@@ -312,6 +321,34 @@ def main() -> int:
         """        const linkedPeer = await linkedClient.peer(config.peerName);\n        return {\n          ws,\n          context: await linkedPeer.context({\n            searchQuery,\n            searchTopK: 3,\n            searchMaxDistance: 0.7,\n            maxConclusions: 5,\n          }),\n        };\n""",
     ):
         changed.append(before_submit_ts)
+
+    if replace_one_of(
+        before_submit_ts,
+        [
+            """  // Start upload immediately (we'll await before exit)\n  let uploadPromise: Promise<void> | null = null;\n  if (config.saveMessages !== false) {\n    uploadPromise = uploadMessageAsync(config, cwd, prompt, hookInput, turnId);\n  }\n""",
+        ],
+        """  // Start upload immediately, but do not block prompt submission on network I/O.\n  // The prompt is already queued locally above, so a slow Honcho endpoint can be retried later.\n  let uploadPromise: Promise<void> | null = null;\n  if (config.saveMessages !== false) {\n    uploadPromise = uploadMessageAsync(config, cwd, prompt, hookInput, turnId)\n      .then(() => markMessagesUploaded(cwd))\n      .catch((e) => logHook("before-submit-prompt", `Upload failed: ${e}`, { error: String(e) }));\n  }\n""",
+    ):
+        changed.append(before_submit_ts)
+
+    for old in [
+        """    if (uploadPromise) {\n      await uploadPromise\n        .then(() => markMessagesUploaded(cwd))\n        .catch((e) => logHook("before-submit-prompt", `Upload failed: ${e}`, { error: String(e) }));\n    }\n""",
+        """  // Ensure upload completes before exit\n  if (uploadPromise) {\n    await uploadPromise\n      .then(() => markMessagesUploaded(cwd))\n      .catch((e) => logHook("before-submit-prompt", `Upload failed: ${e}`, { error: String(e) }));\n  }\n""",
+    ]:
+        text = before_submit_ts.read_text()
+        if old in text:
+            before_submit_ts.write_text(text.replace(old, "    uploadPromise?.catch(() => {});\n" if old.startswith("    ") else "  uploadPromise?.catch(() => {});\n"))
+            changed.append(before_submit_ts)
+
+    before_submit_wrapper_ts = plugin_root / "hooks/before-submit-prompt.ts"
+    if replace_one_of(
+        before_submit_wrapper_ts,
+        [
+            """setDetectedHost(detectHost(input));\nawait handleBeforeSubmitPrompt();\n""",
+        ],
+        """setDetectedHost(detectHost(input));\nconst maxMs = Number(process.env.HONCHO_BEFORE_SUBMIT_MAX_MS || "1500");\nconst timeout = setTimeout(() => {\n  console.error(`[honcho] Warning: before-submit exceeded ${maxMs}ms; continuing without injected context`);\n  process.exit(0);\n}, maxMs);\ntimeout.unref?.();\n\ntry {\n  await handleBeforeSubmitPrompt();\n} finally {\n  clearTimeout(timeout);\n}\n""",
+    ):
+        changed.append(before_submit_wrapper_ts)
 
     # ── session-start.ts ────────────────────────────────────────────
     session_start_ts = plugin_root / "src/hooks/session-start.ts"

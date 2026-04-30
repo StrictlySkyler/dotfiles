@@ -31,6 +31,8 @@
     "/home/skyler/src/cinf": "skyler-cinf",
     "/home/skyler/src/cinf-1": "skyler-cinf-1",
     "/home/skyler/dotfiles": "skyler-dotfiles",
-    "/home/skyler/.honcho/plugins/cursor-honcho/plugins/honcho": "skyler-honcho"
+    "/home/skyler/.honcho/plugins/cursor-honcho/plugins/honcho": "skyler-honcho",
+    "/home/skyler/src/cinf/cinf-org": "skyler-cinf-org",
+    "/home/skyler/src/cinf/strictlyskyler-cinf": "skyler-strictlyskyler-cinf"
   }
 }

@@ -26,7 +26,11 @@ def regex_replace_once(path: Path, pattern: str, new: str) -> bool:
     text = path.read_text()
     if new in text:
         return False
-    updated, count = re.subn(pattern, new, text, count=1, flags=re.DOTALL)
+    # Pass `new` via a callable so re.sub does NOT interpret backslash escapes
+    # (e.g. "\n", "\t", "\1") inside the replacement payload. Without this,
+    # literal "\n" sequences in CLARIFY_DESCRIPTION get decoded into real
+    # newlines and corrupt the target Python source.
+    updated, count = re.subn(pattern, lambda _m: new, text, count=1, flags=re.DOTALL)
     if count != 1:
         raise RuntimeError(f"expected pattern not found in {path}")
     path.write_text(updated)
